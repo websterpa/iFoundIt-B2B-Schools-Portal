@@ -61,3 +61,23 @@ Required environment variables:
 - `SUPABASE_SERVICE_ROLE_KEY`
 
 Keep real credentials only in local environment files such as `.env.local`. Do not commit secrets to the repository.
+
+## Supabase Tooling
+
+Local Supabase project scaffolding now lives in [`supabase/`](supabase). Current setup status:
+
+- `supabase init` has been run for this repository.
+- `.mcp.json` is configured for the hosted project ref `uwzyilyvsjkrmzwakkwa`.
+- The hosted project currently has auth enabled, but the app-critical `organisations` and `admin_users` tables are not yet present in the exposed API surface.
+
+Useful commands:
+
+- `supabase login`
+- `supabase link --project-ref uwzyilyvsjkrmzwakkwa`
+- `supabase migration new <name>`
+- `supabase db pull <name>`
+
+Notes:
+
+- `supabase link` and remote `db pull` require a Supabase access token and the remote database password.
+- Local stack commands such as `supabase start` require Docker.
