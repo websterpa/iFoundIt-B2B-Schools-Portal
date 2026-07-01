@@ -30,11 +30,11 @@ The MVP is focused on proving the recovery workflow for pilot schools:
 
 ## Documentation
 
-- [`docs/PRODUCT.md`](/Volumes/Hymer SSD/iFoundIt B2B Schools Portal/docs/PRODUCT.md) — product overview, users, and outcomes
-- [`docs/MVP_SCOPE.md`](/Volumes/Hymer SSD/iFoundIt B2B Schools Portal/docs/MVP_SCOPE.md) — in-scope and out-of-scope MVP definition
-- [`docs/BACKLOG.md`](/Volumes/Hymer SSD/iFoundIt B2B Schools Portal/docs/BACKLOG.md) — prioritised backlog and next feature recommendation
-- [`docs/USER_STORIES.md`](/Volumes/Hymer SSD/iFoundIt B2B Schools Portal/docs/USER_STORIES.md) — current user stories and acceptance criteria
-- [`docs/iFoundIt B2B Schools Portal — MVP Project Plan.rtf`](/Volumes/Hymer SSD/iFoundIt B2B Schools Portal/docs/iFoundIt%20B2B%20Schools%20Portal%20%E2%80%94%20MVP%20Project%20Plan.rtf) — original MVP source document
+- [`docs/PRODUCT.md`](docs/PRODUCT.md) — product overview, users, and outcomes
+- [`docs/MVP_SCOPE.md`](docs/MVP_SCOPE.md) — in-scope and out-of-scope MVP definition
+- [`docs/BACKLOG.md`](docs/BACKLOG.md) — prioritised backlog and next feature recommendation
+- [`docs/USER_STORIES.md`](docs/USER_STORIES.md) — current user stories and acceptance criteria
+- [`docs/iFoundIt B2B Schools Portal — MVP Project Plan.rtf`](docs/iFoundIt%20B2B%20Schools%20Portal%20%E2%80%94%20MVP%20Project%20Plan.rtf) — original MVP source document
 
 ## Source Of Truth
 

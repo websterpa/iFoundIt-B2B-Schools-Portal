@@ -1,0 +1,576 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2822
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica;}
+{\colortbl;\red255\green255\blue255;}
+{\*\expandedcolortbl;;}
+\paperw11900\paperh16840\margl1440\margr1440\vieww11520\viewh8400\viewkind0
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 # iFoundIt B2B Schools Portal \'97 MVP Project Plan\
+\
+## Project Context\
+\
+iFoundIt is a lost-and-found recovery platform. The existing B2C product (built on Wix + Velo) allows consumers to tag personal items with NFC tags and get notified when a finder taps them. This project builds a separate B2B system for UK secondary schools, enabling schools to tag student phone pouches (mag-lock pouches mandated under the Children's Wellbeing and Schools Act 2026) and recover them when lost \'97 via iFoundIt's existing public finder network.\
+\
+**The core problem being solved:** All YONDR/mag-lock pouches look identical. Students carry them everywhere. When lost in public, there is no way for a finder to know who the pouch belongs to or how to return it. The iFoundIt NFC tag on the pouch, when tapped by a finder, anonymously notifies the school without exposing student details.\
+\
+**The B2B system is completely separate from the B2C Wix/Velo system.** School-registered tags use a different NFC URL (`schools.ifoundit.io/find/[serial]`) pre-programmed before shipping. The two systems share no database. The only shared asset is the iFoundIt brand and finder network.\
+\
+---\
+\
+## Recommended Tech Stack\
+\
+| Layer | Technology | Reason |\
+|---|---|---|\
+| Frontend + API | Next.js 14 (App Router) | React-based, API routes built in, Vercel-native |\
+| Database + Auth | Supabase (PostgreSQL) | Auth, REST, realtime, row-level security, generous free tier |\
+| UI Components | Tailwind CSS + shadcn/ui | Fast to build, accessible, professional |\
+| Email | Resend | Simple API, good deliverability, free tier |\
+| CSV Parsing | Papa Parse | Client-side CSV parsing, no server load |\
+| Hosting | Vercel | One-click Next.js deploy, free tier sufficient for MVP |\
+| Domain | schools.ifoundit.io | Separate subdomain from main Wix site |\
+\
+---\
+\
+## Data Models\
+\
+Run the following in Supabase SQL editor to create the schema.\
+\
+```sql\
+-- Schools / organisations\
+CREATE TABLE organisations (\
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),\
+  name TEXT NOT NULL,\
+  slug TEXT UNIQUE NOT NULL,           -- e.g. 'st-marys-coventry'\
+  address TEXT,\
+  contact_email TEXT NOT NULL,         -- where found notifications are sent\
+  contact_phone TEXT,\
+  logo_url TEXT,\
+  subscription_tier TEXT DEFAULT 'pilot', -- 'pilot' | 'standard' | 'mat'\
+  active BOOLEAN DEFAULT true,\
+  created_at TIMESTAMPTZ DEFAULT now(),\
+  updated_at TIMESTAMPTZ DEFAULT now()\
+);\
+\
+-- Students (PII - handle carefully under UK GDPR)\
+CREATE TABLE students (\
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),\
+  organisation_id UUID REFERENCES organisations(id) ON DELETE CASCADE,\
+  first_name TEXT NOT NULL,\
+  last_name TEXT NOT NULL,\
+  year_group TEXT,\
+  form_group TEXT,\
+  parent_email TEXT,                   -- optional, for future parent notifications\
+  parent_phone TEXT,                   -- optional\
+  active BOOLEAN DEFAULT true,\
+  created_at TIMESTAMPTZ DEFAULT now(),\
+  updated_at TIMESTAMPTZ DEFAULT now()\
+);\
+\
+-- Tags (NFC serial numbers provisioned by iFoundIt before shipping)\
+CREATE TABLE tags (\
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),\
+  serial_number TEXT UNIQUE NOT NULL,  -- matches NFC chip serial, used in URL\
+  organisation_id UUID REFERENCES organisations(id),\
+  student_id UUID REFERENCES students(id),\
+  activated_at TIMESTAMPTZ,\
+  active BOOLEAN DEFAULT false,\
+  created_at TIMESTAMPTZ DEFAULT now(),\
+  updated_at TIMESTAMPTZ DEFAULT now()\
+);\
+\
+-- Recovery events (when a finder taps a tag)\
+CREATE TABLE found_events (\
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),\
+  tag_id UUID REFERENCES tags(id),\
+  serial_number TEXT NOT NULL,         -- denormalised for fast lookup\
+  finder_email TEXT,\
+  finder_phone TEXT,\
+  finder_message TEXT,\
+  location_description TEXT,\
+  notification_sent_at TIMESTAMPTZ,\
+  resolved_at TIMESTAMPTZ,\
+  created_at TIMESTAMPTZ DEFAULT now()\
+);\
+\
+-- School admin users (extends Supabase auth.users)\
+CREATE TABLE admin_users (\
+  id UUID REFERENCES auth.users(id) PRIMARY KEY,\
+  organisation_id UUID REFERENCES organisations(id),\
+  role TEXT DEFAULT 'school_admin',    -- 'school_admin' | 'ifoundit_superadmin'\
+  created_at TIMESTAMPTZ DEFAULT now()\
+);\
+```\
+\
+### Row-Level Security (RLS)\
+\
+Enable RLS on all tables. School admins can only read/write rows where `organisation_id` matches their own. iFoundIt superadmins can access all rows.\
+\
+```sql\
+-- Example RLS policy for students table\
+ALTER TABLE students ENABLE ROW LEVEL SECURITY;\
+\
+CREATE POLICY "School admins can manage their own students"\
+ON students\
+FOR ALL\
+USING (\
+  organisation_id = (\
+    SELECT organisation_id FROM admin_users WHERE id = auth.uid()\
+  )\
+);\
+```\
+\
+Apply equivalent policies to `tags` and `found_events`.\
+\
+---\
+\
+## MVP Scope\
+\
+### In scope\
+- [ ] School admin portal (web app at schools.ifoundit.io)\
+- [ ] School admin authentication (email/password via Supabase Auth)\
+- [ ] Student CSV import\
+- [ ] Bulk tag activation (serial numbers \uc0\u8594  school account)\
+- [ ] Tag-to-student assignment\
+- [ ] GDPR-safe public finder page\
+- [ ] Found event submission + email notification to school\
+- [ ] Basic recovery events log\
+- [ ] iFoundIt superadmin: create school accounts, provision tag serial numbers\
+\
+### Explicitly out of scope for MVP\
+- Self-service school signup (iFoundIt creates accounts manually via superadmin)\
+- Parent portal or parent email notifications\
+- MIS integration (Arbor, Bromcom, SIMS)\
+- MAT (Multi-Academy Trust) dashboard\
+- SMS notifications\
+- Compliance/audit reporting\
+- Mobile app\
+- Finder reward flow (handled by existing B2C product)\
+\
+---\
+\
+## Epic 1 \'97 School Admin Portal\
+\
+### Overview\
+A password-protected web dashboard where a school administrator manages their students and tags. iFoundIt creates the school account and sends an invite email. The admin then logs in, imports students, and assigns tags.\
+\
+### Pages\
+\
+**`/login`**\
+- Email + password login form\
+- Uses Supabase Auth `signInWithPassword`\
+- On success: redirect to `/dashboard`\
+- "Forgot password" link (Supabase handles reset email)\
+\
+**`/dashboard`**\
+- Summary cards: Total Tags, Active Tags, Unassigned Tags, Recoveries This Term\
+- Recent found events table (last 5): date, student name (masked: "J. Smith"), resolved status\
+- Quick action buttons: Import Students, Assign Tags, View All Events\
+\
+**`/students`**\
+- Table: first name, last name, year group, form group, tag assigned (yes/no), active\
+- Search/filter by year group and form\
+- "Import CSV" button \uc0\u8594  opens CSV upload modal\
+- "Add student manually" button \uc0\u8594  inline form\
+- Row action: deactivate student (marks active = false, unlinks tag)\
+\
+**`/tags`**\
+- Table: serial number, assigned to (student name or "Unassigned"), active status, last scanned date\
+- "Assign Tag" action per row: dropdown to select student from list\
+- "Bulk Assign" button: CSV upload mapping serial numbers to student names\
+- Filter: unassigned only\
+\
+**`/events`**\
+- Table: date/time, tag serial, student name, finder message, location, resolved (yes/no)\
+- "Mark Resolved" toggle per row (updates `resolved_at`)\
+- Date range filter\
+\
+**`/settings`**\
+- School name, address (read-only, set by iFoundIt superadmin)\
+- Notification email: editable, saved to `organisations.contact_email`\
+- Notification phone: optional\
+- Upload school logo (stored in Supabase Storage, used on finder page)\
+\
+### Superadmin Pages (role: `ifoundit_superadmin`)\
+\
+**`/admin`**\
+- List of all organisations with tag counts and event counts\
+- "Create School" button \uc0\u8594  form: name, slug, contact email, contact phone\
+\
+**`/admin/tags`**\
+- "Provision Tags" form: paste or upload list of serial numbers, assign to organisation\
+- Sets `organisation_id` and `active = true` on each tag record\
+\
+### Acceptance Criteria\
+- [ ] School admin can log in and is redirected to their organisation's dashboard only\
+- [ ] School admin cannot access another school's data (RLS enforced)\
+- [ ] Dashboard summary cards show accurate counts\
+- [ ] Superadmin can create a school account and provision tags in under 5 minutes\
+\
+---\
+\
+## Epic 2 \'97 Student CSV Import\
+\
+### Overview\
+School uploads a CSV of students. The system validates the data and bulk-inserts into the `students` table. No individual form-filling required.\
+\
+### Expected CSV Format\
+\
+```\
+first_name,last_name,year_group,form_group,parent_email\
+James,Smith,Year 9,9A,j.smith.parent@email.com\
+Priya,Patel,Year 10,10B,\
+```\
+\
+- `first_name` and `last_name` are required\
+- All other fields are optional\
+- `parent_email` is optional (not used in MVP notifications but stored for future use)\
+- Extra columns are ignored\
+\
+### Implementation\
+\
+**Component: `StudentImportModal`**\
+\
+```typescript\
+// Accepts a File object, parses with Papa Parse, validates, previews, submits\
+\
+import Papa from 'papaparse'\
+\
+type StudentRow = \{\
+  first_name: string\
+  last_name: string\
+  year_group?: string\
+  form_group?: string\
+  parent_email?: string\
+\}\
+\
+// 1. Parse CSV client-side with Papa.parse(file, \{ header: true \})\
+// 2. Validate: flag rows missing first_name or last_name\
+// 3. Show preview table: valid rows (green), invalid rows (red) with error reason\
+// 4. "Confirm Import" button calls POST /api/students/import\
+// 5. Show success: "487 students imported. 3 rows skipped."\
+```\
+\
+**API Route: `POST /api/students/import`**\
+\
+```typescript\
+// app/api/students/import/route.ts\
+\
+// Input: \{ students: StudentRow[], organisation_id: string \}\
+// Auth: verify session, verify user's organisation_id matches input\
+// Action: supabase.from('students').insert(students.map(s => (\{ ...s, organisation_id \})))\
+// Handle duplicates: upsert on (organisation_id, first_name, last_name) or skip\
+// Output: \{ inserted: number, skipped: number, errors: string[] \}\
+```\
+\
+### Acceptance Criteria\
+- [ ] CSV with 1,000 rows imports in under 10 seconds\
+- [ ] Rows missing required fields are shown as errors in preview, not imported\
+- [ ] Re-importing the same CSV does not create duplicate student records\
+- [ ] Imported students immediately appear in the `/students` table\
+\
+---\
+\
+## Epic 3 \'97 Bulk Tag Activation\
+\
+### Overview\
+iFoundIt ships a batch of NFC tags (pre-programmed with `schools.ifoundit.io/find/[serial]`) to a school. Before or on delivery, the iFoundIt superadmin provisions those serial numbers in the system, linking them to the school's `organisation_id`. The school admin then assigns individual tags to individual students via the portal.\
+\
+### Two-Step Flow\
+\
+**Step 1 \'97 iFoundIt superadmin provisions tags (done before/on delivery)**\
+\
+Superadmin goes to `/admin/tags`, enters or uploads the list of serial numbers for the batch, selects the school, and clicks "Provision." This creates records in the `tags` table with `organisation_id` set and `active = true`. Tags are now "active but unassigned."\
+\
+**Step 2 \'97 School admin assigns tags to students**\
+\
+School admin goes to `/tags`, sees a list of unassigned tags, and maps each to a student. Two methods:\
+\
+*Method A \'97 Manual (one by one in portal)*\
+Click "Assign" next to a tag serial \uc0\u8594  dropdown of students \u8594  select \u8594  save.\
+\
+*Method B \'97 CSV bulk assign*\
+Upload a CSV mapping serial numbers to student names:\
+```\
+serial_number,first_name,last_name\
+A3F9B2C1,James,Smith\
+D7E4A1B8,Priya,Patel\
+```\
+System matches students by `(first_name, last_name, organisation_id)` and updates `tags.student_id`.\
+\
+**API Route: `POST /api/tags/provision`** (superadmin only)\
+```typescript\
+// Input: \{ serials: string[], organisation_id: string \}\
+// Action: bulk insert into tags table with organisation_id and active = true\
+// Output: \{ provisioned: number, duplicates: number \}\
+```\
+\
+**API Route: `POST /api/tags/assign`** (school admin)\
+```typescript\
+// Input: \{ tag_id: string, student_id: string \}\
+// Auth: verify both tag and student belong to admin's organisation\
+// Action: UPDATE tags SET student_id = $1, updated_at = now() WHERE id = $2\
+// Output: \{ success: boolean \}\
+```\
+\
+**API Route: `POST /api/tags/bulk-assign`** (school admin)\
+```typescript\
+// Input: \{ assignments: Array<\{ serial_number: string, first_name: string, last_name: string \}> \}\
+// For each row: look up student by name in organisation, look up tag by serial in organisation\
+// Update tags.student_id\
+// Output: \{ assigned: number, not_found: string[], errors: string[] \}\
+```\
+\
+### Acceptance Criteria\
+- [ ] Superadmin can provision 500 tag serials to a school in a single action\
+- [ ] Provisioned tags appear in school admin's `/tags` page immediately\
+- [ ] Bulk CSV assign of 500 tags completes in under 15 seconds\
+- [ ] Tags not found in the school's student list are flagged, not silently skipped\
+\
+---\
+\
+## Epic 4 \'97 GDPR-Safe Finder Page + Notification Flow\
+\
+### Overview\
+This is the public-facing side of the system. When a member of the public finds a tagged pouch and taps it with their phone, they land on a page that tells them it belongs to a student at a named school, gives them the school's contact details, and offers a one-click "Notify the school" button. The student's name is never shown to the finder.\
+\
+### Finder Page: `GET /find/[serial]`\
+\
+**Logic:**\
+1. Look up `serial` in `tags` table\
+2. If not found: show "This tag isn't registered \'97 please contact iFoundIt"\
+3. If found and `active = false`: show "This tag is no longer active"\
+4. If found and `active = true`: look up `organisation` via `organisation_id`\
+5. Render school-safe finder page\
+\
+**School-safe finder page content:**\
+```\
+[School Logo if available]\
+\
+You've found something that belongs to a student at:\
+[School Name]\
+\
+The item is securely locked and the student cannot access it without a key held at the school.\
+\
+To return this item, you can:\
+\'95 Contact the school directly: [contact_phone]\
+\'95 Click below to notify the school instantly \'97 no account needed\
+\
+[NOTIFY THE SCHOOL] \uc0\u8592  primary CTA button\
+\
+Thank you for your honesty.\
+```\
+\
+**What is NOT shown to the finder:**\
+- Student name\
+- Student year group or form\
+- Parent contact details\
+- Any personally identifiable information\
+\
+### Found Event Submission: `POST /api/found/[serial]`\
+\
+Triggered when finder clicks "Notify the school."\
+\
+**Input (from a short optional form shown after clicking the button):**\
+```typescript\
+\{\
+  finder_email?: string       // optional, for school to arrange collection\
+  finder_phone?: string       // optional\
+  finder_message?: string     // optional free text\
+  location_description?: string // e.g. "on the 47 bus, Coventry"\
+\}\
+```\
+\
+**Actions:**\
+1. Look up tag by serial, get `organisation_id`, `student_id`\
+2. Insert row into `found_events`\
+3. Look up student name (for internal notification only)\
+4. Look up `organisation.contact_email`\
+5. Send email to school via Resend (see template below)\
+6. Send confirmation page to finder\
+7. Update `found_events.notification_sent_at = now()`\
+\
+**Email to school \'97 template:**\
+\
+```\
+Subject: iFoundIt \'97 A student's pouch has been found\
+\
+A phone pouch registered to one of your students has been found.\
+\
+Student: [First Name] [Last Name] ([Year Group], [Form Group])\
+Tag serial: [serial_number]\
+Found at: [location_description or "Location not provided"]\
+Time: [timestamp]\
+\
+Finder contact:\
+Email: [finder_email or "Not provided"]\
+Phone: [finder_phone or "Not provided"]\
+Message: [finder_message or "No message"]\
+\
+Log in to your iFoundIt school portal to mark this as resolved:\
+https://schools.ifoundit.io/events\
+\
+\'97\
+iFoundIt School Recovery System\
+```\
+\
+**Confirmation page shown to finder (`/found/success`):**\
+```\
+Thank you \'97 [School Name] has been notified.\
+\
+They will be in touch if they need to arrange collection.\
+You're helping keep students' belongings safe.\
+```\
+\
+### Acceptance Criteria\
+- [ ] Finder page loads in under 2 seconds with no authentication required\
+- [ ] Finder page never displays student name, year group, form, or any PII\
+- [ ] School receives notification email within 60 seconds of finder submission\
+- [ ] Found event appears in school admin's `/events` log immediately\
+- [ ] Submitting the found form twice for the same tag within 1 hour is blocked (debounce) to prevent notification spam\
+- [ ] If tag serial is unrecognised, finder sees a helpful error, not a crash\
+\
+---\
+\
+## Project File Structure\
+\
+```\
+schools.ifoundit.io/\
+\uc0\u9500 \u9472 \u9472  app/\
+\uc0\u9474    \u9500 \u9472 \u9472  (public)/\
+\uc0\u9474    \u9474    \u9500 \u9472 \u9472  find/[serial]/\
+\uc0\u9474    \u9474    \u9474    \u9492 \u9472 \u9472  page.tsx          # Finder page\
+\uc0\u9474    \u9474    \u9492 \u9472 \u9472  found/\
+\uc0\u9474    \u9474        \u9492 \u9472 \u9472  success/\
+\uc0\u9474    \u9474            \u9492 \u9472 \u9472  page.tsx      # Post-submission confirmation\
+\uc0\u9474    \u9500 \u9472 \u9472  (auth)/\
+\uc0\u9474    \u9474    \u9492 \u9472 \u9472  login/\
+\uc0\u9474    \u9474        \u9492 \u9472 \u9472  page.tsx          # School admin login\
+\uc0\u9474    \u9500 \u9472 \u9472  (portal)/                 # Protected \'97 school admin only\
+\uc0\u9474    \u9474    \u9500 \u9472 \u9472  layout.tsx            # Checks auth, redirects if not logged in\
+\uc0\u9474    \u9474    \u9500 \u9472 \u9472  dashboard/\
+\uc0\u9474    \u9474    \u9474    \u9492 \u9472 \u9472  page.tsx\
+\uc0\u9474    \u9474    \u9500 \u9472 \u9472  students/\
+\uc0\u9474    \u9474    \u9474    \u9492 \u9472 \u9472  page.tsx\
+\uc0\u9474    \u9474    \u9500 \u9472 \u9472  tags/\
+\uc0\u9474    \u9474    \u9474    \u9492 \u9472 \u9472  page.tsx\
+\uc0\u9474    \u9474    \u9500 \u9472 \u9472  events/\
+\uc0\u9474    \u9474    \u9474    \u9492 \u9472 \u9472  page.tsx\
+\uc0\u9474    \u9474    \u9492 \u9472 \u9472  settings/\
+\uc0\u9474    \u9474        \u9492 \u9472 \u9472  page.tsx\
+\uc0\u9474    \u9500 \u9472 \u9472  (admin)/                  # Protected \'97 ifoundit_superadmin only\
+\uc0\u9474    \u9474    \u9500 \u9472 \u9472  layout.tsx\
+\uc0\u9474    \u9474    \u9500 \u9472 \u9472  admin/\
+\uc0\u9474    \u9474    \u9474    \u9500 \u9472 \u9472  page.tsx          # List all schools\
+\uc0\u9474    \u9474    \u9474    \u9492 \u9472 \u9472  tags/\
+\uc0\u9474    \u9474    \u9474        \u9492 \u9472 \u9472  page.tsx      # Provision tags\
+\uc0\u9474    \u9492 \u9472 \u9472  api/\
+\uc0\u9474        \u9500 \u9472 \u9472  students/\
+\uc0\u9474        \u9474    \u9492 \u9472 \u9472  import/route.ts\
+\uc0\u9474        \u9500 \u9472 \u9472  tags/\
+\uc0\u9474        \u9474    \u9500 \u9472 \u9472  provision/route.ts\
+\uc0\u9474        \u9474    \u9500 \u9472 \u9472  assign/route.ts\
+\uc0\u9474        \u9474    \u9492 \u9472 \u9472  bulk-assign/route.ts\
+\uc0\u9474        \u9500 \u9472 \u9472  found/\
+\uc0\u9474        \u9474    \u9492 \u9472 \u9472  [serial]/route.ts\
+\uc0\u9474        \u9492 \u9472 \u9472  dashboard/\
+\uc0\u9474            \u9492 \u9472 \u9472  stats/route.ts\
+\uc0\u9500 \u9472 \u9472  components/\
+\uc0\u9474    \u9500 \u9472 \u9472  ui/                       # shadcn/ui components\
+\uc0\u9474    \u9500 \u9472 \u9472  StudentImportModal.tsx\
+\uc0\u9474    \u9500 \u9472 \u9472  TagAssignModal.tsx\
+\uc0\u9474    \u9500 \u9472 \u9472  BulkAssignModal.tsx\
+\uc0\u9474    \u9500 \u9472 \u9472  EventsTable.tsx\
+\uc0\u9474    \u9500 \u9472 \u9472  StudentsTable.tsx\
+\uc0\u9474    \u9492 \u9472 \u9472  TagsTable.tsx\
+\uc0\u9500 \u9472 \u9472  lib/\
+\uc0\u9474    \u9500 \u9472 \u9472  supabase/\
+\uc0\u9474    \u9474    \u9500 \u9472 \u9472  client.ts             # Browser Supabase client\
+\uc0\u9474    \u9474    \u9492 \u9472 \u9472  server.ts             # Server-side Supabase client (uses cookies)\
+\uc0\u9474    \u9500 \u9472 \u9472  email/\
+\uc0\u9474    \u9474    \u9492 \u9472 \u9472  resend.ts             # Resend client + email templates\
+\uc0\u9474    \u9492 \u9472 \u9472  utils.ts\
+\uc0\u9500 \u9472 \u9472  middleware.ts                  # Auth guard: redirect unauthenticated users\
+\uc0\u9492 \u9472 \u9472  .env.local\
+    # NEXT_PUBLIC_SUPABASE_URL=\
+    # NEXT_PUBLIC_SUPABASE_ANON_KEY=\
+    # SUPABASE_SERVICE_ROLE_KEY=\
+    # RESEND_API_KEY=\
+```\
+\
+---\
+\
+## Build Timeline\
+\
+| Week | Focus | Deliverable |\
+|---|---|---|\
+| 1 | Project setup, Supabase schema, auth, middleware | Login works, RLS in place, protected routes redirect correctly |\
+| 2 | Superadmin: create school, provision tags | iFoundIt can create a school and add tag serials in under 5 mins |\
+| 3 | Student CSV import + tags page + manual assign | School admin can import 500 students and assign tags |\
+| 4 | Finder page + found event API + email notification | End-to-end: tap tag \uc0\u8594  school gets email |\
+| 5 | Dashboard stats, events log, settings page | Portal feels complete; school can manage their account |\
+| 6 | Testing, GDPR review, pilot onboarding of 3 schools | Live with first pilot schools |\
+\
+---\
+\
+## Environment Setup\
+\
+```bash\
+# 1. Create Next.js app\
+npx create-next-app@latest schools-ifoundit --typescript --tailwind --app\
+\
+# 2. Install dependencies\
+npm install @supabase/supabase-js @supabase/ssr\
+npm install resend\
+npm install papaparse @types/papaparse\
+npm install @radix-ui/react-dialog @radix-ui/react-dropdown-menu  # if not using shadcn CLI\
+\
+# 3. Install shadcn/ui\
+npx shadcn-ui@latest init\
+npx shadcn-ui@latest add button input table dialog dropdown-menu badge card\
+\
+# 4. Set up Supabase project at supabase.com\
+# Copy project URL and anon key to .env.local\
+# Run SQL schema above in Supabase SQL editor\
+\
+# 5. Set up Resend account at resend.com\
+# Add RESEND_API_KEY to .env.local\
+# Verify schools.ifoundit.io domain in Resend\
+\
+# 6. Deploy to Vercel\
+# Connect GitHub repo, add environment variables in Vercel dashboard\
+# Set custom domain: schools.ifoundit.io\
+```\
+\
+---\
+\
+## Key Decisions and Notes for Development\
+\
+**Authentication approach:** Use Supabase Auth with the `@supabase/ssr` package (not the legacy `auth-helpers`). Session is stored in cookies, readable server-side in Next.js Server Components and Route Handlers. See Supabase docs: [Server-Side Auth for Next.js](https://supabase.com/docs/guides/auth/server-side/nextjs).\
+\
+**Middleware:** `middleware.ts` should check for a valid Supabase session on all `/dashboard`, `/students`, `/tags`, `/events`, `/settings`, and `/admin` routes. Redirect to `/login` if not authenticated.\
+\
+**Role checking:** After confirming auth, check `admin_users.role` from the database. If role is `school_admin`, restrict access to their `organisation_id` only (enforced by RLS). If role is `ifoundit_superadmin`, allow access to all `/admin` routes.\
+\
+**Finder page is fully public:** No auth, no session check. It must be fast and work on mobile. Keep it under 50KB total. No unnecessary JavaScript.\
+\
+**Email deliverability:** Configure Resend with the `schools.ifoundit.io` domain. Send from `noreply@schools.ifoundit.io`. Include school name in the From display name (e.g. "iFoundIt School Recovery"). This avoids spam filters.\
+\
+**GDPR:** Before going live, complete a Data Protection Impact Assessment (DPIA) using the ICO template. Ensure privacy policy at `schools.ifoundit.io/privacy` covers school data processing. Data Processing Agreements with each school must be signed before pilot launch \'97 store signed copies.\
+\
+**NFC tag URL format:** Tags shipped to schools are pre-programmed with `https://schools.ifoundit.io/find/SERIALNUMBER`. Serial numbers should be alphanumeric, 8 characters minimum, uppercase (e.g. `A3F9B2C1`). Do not use special characters in serial numbers as they appear in URLs.\
+\
+---\
+\
+## Post-MVP Backlog (not for this sprint)\
+\
+- Parent email notifications on found event\
+- Self-service school signup flow\
+- Arbor MIS integration (import students directly from Arbor API)\
+- Bromcom MIS integration\
+- MAT dashboard (one login, multiple schools)\
+- SMS notifications via Twilio\
+- Compliance/audit report export (PDF)\
+- Tag lifecycle management (deactivate leavers in bulk, reassign tags)\
+- School logo on finder page\
+- Finder reward flow integration with B2C platform\
+}
