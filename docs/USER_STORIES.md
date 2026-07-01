@@ -2,11 +2,17 @@
 
 ## Current Focus
 
-School admin authentication and invite-based account activation
+Foundation stabilisation, then superadmin onboarding/tag provisioning, then public finder submission
 
 ## Core User Problem
 
 School staff need a secure, low-friction way to access only their school's portal so they can start managing students, tags, and recoveries without exposing other schools' data.
+
+## Current Implementation Snapshot
+
+- Implemented in repo: school-admin login, password setup, callback confirmation, protected dashboard access, superadmin route restriction, and public school-marketing pages
+- Partially implemented in repo: finder-flow data contract and rejection-log schema foundation
+- Not yet implemented in repo: superadmin school-creation workflow, tag provisioning workflow, public finder submission flow, and notification delivery
 
 ## Stories
 
@@ -59,6 +65,35 @@ As an iFoundIt superadmin, I want role-based access separation so that admin-onl
 - School admins cannot access superadmin routes
 - Superadmins can access school-management routes
 - Role checks fail closed when role data is missing or invalid
+
+### Story 6
+
+As an iFoundIt operator, I want the finder-flow contract to reject obvious spam patterns so that pilot schools are not flooded with low-quality notifications.
+
+#### Acceptance criteria
+
+- Duplicate submissions for the same tag within the debounce window are rejected
+- A submission with a filled honeypot field is rejected without exposing the rejection reason publicly
+- A submission arriving under 2 seconds after page load is rejected
+- More than 5 found-event submissions from one IP in 10 minutes returns `429`
+- Rate-limit and honeypot rejections are logged for later review
+
+Implementation note:
+The schema and contract helpers exist in repo code, but the public submission path and enforcement flow are still pending.
+
+### Story 7
+
+As a school decision-maker, I want a public page explaining pouch protection so that I can understand the recovery add-on without entering the authenticated portal.
+
+#### Acceptance criteria
+
+- `/schools/pouch-protection` is public and does not require auth
+- The page uses final approved copy without placeholder lorem ipsum
+- The compatibility FAQ stays provisional until product confirmation is available
+- CTA labels are accessible even while contact routing remains placeholder-only
+
+Implementation note:
+The page and its tests exist in repo code today; live contact routing remains intentionally placeholder-only.
 
 ## Not Included In This Feature
 

@@ -11,6 +11,7 @@ The portal helps schools:
 - assign tags to students
 - receive anonymous found-item notifications from the public
 - track recovery events without exposing student details
+- publish public school-facing information about pouch protection without exposing the authenticated admin workspace
 
 ## Product Summary
 
@@ -32,13 +33,34 @@ The MVP is focused on proving the recovery workflow for pilot schools:
 
 - [`docs/PRODUCT.md`](docs/PRODUCT.md) — product overview, users, and outcomes
 - [`docs/MVP_SCOPE.md`](docs/MVP_SCOPE.md) — in-scope and out-of-scope MVP definition
+- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — current application boundaries and implementation shape
 - [`docs/BACKLOG.md`](docs/BACKLOG.md) — prioritised backlog and next feature recommendation
 - [`docs/USER_STORIES.md`](docs/USER_STORIES.md) — current user stories and acceptance criteria
+- [`docs/DECISIONS.md`](docs/DECISIONS.md) — accepted, open, and rejected technical/product decisions
+- [`docs/iFoundIt_Epic4_Spam_Prevention_Addendum.md`](docs/iFoundIt_Epic4_Spam_Prevention_Addendum.md) — finder-flow anti-spam requirements for Epic 4
 - [`docs/iFoundIt B2B Schools Portal — MVP Project Plan.rtf`](docs/iFoundIt%20B2B%20Schools%20Portal%20%E2%80%94%20MVP%20Project%20Plan.rtf) — original MVP source document
+- [`CLAUDE.md`](CLAUDE.md) — repo-local execution and safety governance
+
+## Current Implementation Snapshot
+
+The repository currently includes:
+
+- a Next.js App Router foundation with a public marketing shell
+- school-admin login and password-setup pages backed by Supabase Auth clients
+- an auth confirmation callback route at `/auth/confirm`
+- protected dashboard and superadmin routes that fail closed when session or role state cannot be proven
+- Supabase migrations for the auth/admin contract and the initial finder-flow data contract
+- unit tests for auth helpers, auth forms, marketing components, and finder-contract utilities
+
+Still pending:
+
+- hosted Supabase verification that the expected migrations and auth flows are fully applied in the target project
+- superadmin workflows for creating schools, assigning admin roles, and provisioning tags
+- public finder submission handling, anti-spam enforcement, and notification delivery
 
 ## Source Of Truth
 
-Until implementation docs evolve further, the MVP plan RTF and the Markdown files above should be treated as the product source of truth for scope and sequencing.
+Until implementation docs evolve further, the MVP plan RTF, `CLAUDE.md`, and the Markdown files above should be treated as the product source of truth for scope and sequencing.
 
 ## Local Setup
 
@@ -68,7 +90,8 @@ Local Supabase project scaffolding now lives in [`supabase/`](supabase). Current
 
 - `supabase init` has been run for this repository.
 - `.mcp.json` is configured for the hosted project ref `uwzyilyvsjkrmzwakkwa`.
-- The hosted project currently has auth enabled, but the app-critical `organisations` and `admin_users` tables are not yet present in the exposed API surface.
+- The repository contains migrations for the auth/admin contract and the initial finder-flow contract.
+- Applying or confirming those migrations in the hosted project is still a separate operational step and has not been re-verified in this branch.
 
 Useful commands:
 

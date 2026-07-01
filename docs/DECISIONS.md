@@ -56,7 +56,31 @@ Status:
 Accepted
 
 Why:
-Starting from an empty workspace, the safest path is to ship a tested scaffold first, then wire live Supabase behavior in a follow-up slice. This keeps progress real without overstating what is production-ready.
+Starting from an empty workspace, the safest path was to ship a tested scaffold first, then wire live Supabase behavior in a follow-up slice. That follow-up slice is now present in repo code, which leaves operational onboarding and public finder workflows as the next incremental steps.
+
+### D-008: Log rejected finder submissions separately from successful recovery events
+
+Status:
+Accepted
+
+Why:
+Spam or abuse attempts are operationally important, but they are not valid recovery events. A separate rejection log keeps reporting clean while preserving evidence for review.
+
+### D-009: Keep school-marketing pages in the public routing boundary
+
+Status:
+Accepted
+
+Why:
+School-facing explainer pages such as `/schools/pouch-protection` support adoption and procurement conversations, but they must not share the authenticated app shell or imply access to school data.
+
+### D-010: Stabilise written repo state before phase-2 feature work
+
+Status:
+Accepted
+
+Why:
+The codebase moved beyond placeholder auth scaffolding, but the planning docs lagged behind. Correcting that mismatch before superadmin onboarding and finder-submission work reduces accidental rework and keeps execution truth-based.
 
 ## Open Decisions
 
@@ -89,6 +113,16 @@ Options:
 
 Current direction:
 Use the same table for MVP unless security review exposes a concrete reason to split it.
+
+### O-004: Three.js hero integration for school marketing pages
+
+Options:
+
+- add `three` now and build the pouch visual in this repo
+- defer 3D hero work until a reusable component and dependency choice are explicitly scoped
+
+Current direction:
+Defer Three.js integration until the component can be implemented and verified truthfully in a dedicated slice. The current repo does not yet contain the promised shared visual component.
 
 ## Rejected Decisions
 

@@ -2,7 +2,7 @@
 
 ## Current Feature
 
-School admin authentication and invite-based account activation
+Implemented auth foundation, public school marketing pages, and initial finder-flow data contract
 
 ## Architectural Goal
 
@@ -18,25 +18,30 @@ This keeps the MVP architecture simple:
 - Postgres stores tenant and role mapping
 - Next.js server components and middleware enforce access boundaries
 - Public finder routes remain outside the authenticated app shell
+- Public school-marketing routes remain outside the authenticated app shell
 
 ## Backend
 
 ### API Changes
 
-Authentication foundation requires these server-side capabilities:
+The current auth foundation exposes these in-repo capabilities:
 
-- sign-in handler for email/password authentication
-- password setup or reset-confirmation handler for first-time access
-- sign-out handler
-- protected session lookup utility
-- role and organisation context lookup utility
+- browser-side sign-in on `/login` using the Supabase browser client
+- browser-side password setup on `/setup-password` using the Supabase browser client
+- auth callback confirmation at `GET /auth/confirm`
+- sign-out from the protected app shell using the Supabase browser client
+- protected session lookup at `GET /api/auth/session`
+- role and organisation context lookup through server-side helpers on protected pages
 
-Minimal initial protected endpoints:
+Current route and endpoint surface:
 
-- `POST /auth/login`
-- `POST /auth/logout`
-- `POST /auth/setup-password` or equivalent callback-confirmation flow
+- `GET /auth/confirm`
 - `GET /api/auth/session`
+- `/login`
+- `/setup-password`
+- `/dashboard`
+- `/admin`
+- `/unauthorised`
 
 ### Database Changes
 
@@ -44,6 +49,12 @@ The MVP source already defines the essential auth-adjacent tables:
 
 - `organisations`
 - `admin_users`
+
+The finder-flow contract now also requires:
+
+- `tags`
+- `found_events`
+- `found_event_rejections`
 
 For this feature, the required data contract is:
 
@@ -60,11 +71,12 @@ Recommended constraints:
 - `role` is constrained to known values
 - superadmin users may have elevated cross-tenant access through role, not through weakened school policies
 
-### Services Needed
+### Services In Use
 
 - Supabase server client for authenticated server-side requests
-- Auth service wrapper for sign-in, sign-out, and current-user lookup
-- Authorisation service wrapper for role and organisation resolution
+- Supabase browser client for sign-in, password setup, and sign-out
+- Supabase service-role client for server-side organisation and role lookups once session identity is known
+- Auth helper utilities for session identity, role checks, organisation checks, and safe route resolution
 
 ## Frontend
 
@@ -74,9 +86,10 @@ Minimum frontend units:
 
 - `LoginForm`
 - `SetupPasswordForm`
-- `AuthStatusGate`
 - `ProtectedAppShell`
-- `AccessDeniedState`
+- `SignOutButton`
+- `MarketingShell`
+- `PouchProtectionPageContent`
 
 ### State Management
 
@@ -87,9 +100,9 @@ Minimum frontend units:
 ### Data Flow
 
 1. User submits credentials or setup form.
-2. Server validates through Supabase Auth.
-3. App resolves `auth.users.id`.
-4. App loads `admin_users` role and `organisation_id`.
+2. Supabase Auth validates through the browser client.
+3. Server-side code resolves `auth.users.id` from the authenticated session cookies.
+4. Protected pages or the session endpoint load the matching `admin_users` role and `organisation_id`.
 5. If role and organisation are valid, protected routes render.
 6. If role or organisation cannot be validated, access is denied.
 
@@ -138,13 +151,16 @@ Optional but likely needed later:
 
 ### Public boundary
 
+- `/`
+- `/schools/pouch-protection`
 - `/find/[serial]`
 - future finder confirmation pages
 
 ### Auth boundary
 
 - `/login`
-- password setup and recovery routes
+- `/setup-password`
+- `/auth/confirm`
 
 ### Protected school boundary
 
@@ -154,6 +170,8 @@ Optional but likely needed later:
 - `/events`
 - `/settings`
 
+Current protected app shell navigation points at these future school routes even though they are not implemented yet.
+
 ### Protected superadmin boundary
 
 - `/admin`
@@ -161,9 +179,21 @@ Optional but likely needed later:
 
 ## Recommended Build Order
 
+Completed foundation slices:
+
 1. App scaffold and Supabase integration
 2. Login and password setup screens
 3. Session and protected-route gate
 4. Role and organisation lookup
 5. Access-denied handling
 6. Superadmin route restriction
+7. Finder-flow schema and anti-spam contract foundation
+8. Public school marketing surfaces
+
+Next slices:
+
+9. Superadmin school creation and admin mapping
+10. Tag provisioning for pilot schools
+11. Student CSV import and manual exceptions flow
+12. Public finder submission handling, anti-spam enforcement, and notification delivery
+13. Events log, settings, and dashboard summaries

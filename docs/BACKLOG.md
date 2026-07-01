@@ -4,77 +4,73 @@
 
 ### Status
 
-Partially implemented foundation
+Implemented foundation with phase-2 onboarding and provisioning design ready
 
 ### Feature
 
-School admin authentication and invite-based account activation
+Superadmin school onboarding and CSV-driven tag provisioning
 
 ### Problem
 
-Schools cannot use any part of the portal until an authorised admin can securely access their organisation's workspace. Without a working sign-in flow tied to the correct school account, student imports, tag assignment, settings, and event review cannot happen safely.
+The auth boundary and inventory contract are in place, but iFoundIt staff still cannot set up a pilot school operationally. Without a protected superadmin workflow for creating the school, storing the pending admin contact, and allocating supplier-delivered tag UIDs to that school's `organisation_id`, the pilot onboarding path remains blocked.
 
 ### Why This Matters For MVP
 
-This is the first dependency for the operational workflow. Every school-facing capability in the MVP assumes a trusted school admin session and an organisation boundary. Building this first reduces downstream rework, unlocks protected routes, and lets later features be tested in realistic tenant conditions.
+Pilot rollout depends on central setup before any school can use the portal. A superadmin needs to create the school, capture the intended admin contact for later invite/reset activation, and ingest the supplier `.csv` so bulk-delivered tags belong to the right organisation before school staff begin attaching and scanning them.
 
 ### Smallest Possible Version
 
-- iFoundIt superadmin creates a school admin account manually
-- School admin receives an invite or reset-style setup link
-- School admin sets a password and signs in
-- Authenticated school admin reaches a protected dashboard shell
-- Unauthenticated users are redirected to `/login`
-- School admins can only access their own organisation context
+- The protected `/admin` area supports school creation
+- The workflow stores pending school-admin contact metadata without creating a live auth user
+- A superadmin can upload a supplier `.csv` and provision accepted tag UIDs to one selected `organisation_id`
+- Provisioned tags remain unassigned inventory until the later school-side scan-to-register workflow links them to students
 
 ### Acceptance Criteria
 
-- A manually created school admin can complete first-time password setup
-- A school admin can sign in with email and password
-- Protected portal routes redirect unauthenticated users to `/login`
-- An authenticated school admin can access only their own organisation's portal area
-- A non-superadmin cannot access superadmin routes
-- Failed sign-in attempts show a clear, non-sensitive error message
+- A superadmin can create a school organisation from the protected admin workspace
+- The workflow stores a pending school-admin contact without creating an auth user
+- A supplier `.csv` can be ingested and accepted tag UIDs can be assigned to one `organisation_id`
+- Duplicate, malformed, and cross-school-conflicting rows are surfaced clearly and not inserted
 
 ### Risks And Unknowns
 
-- Invite flow details are not fully specified in the MVP source and may depend on the chosen Supabase setup
-- Role storage and organisation mapping must be designed carefully to avoid cross-tenant data leaks
-- Password-reset and account-invite wording needs to be clear enough for school staff with minimal onboarding
+- Hosted Supabase migration state and callback configuration have not been re-verified from this branch
+- Invite/reset wording and activation reconciliation are still product and implementation details to refine
+- The current server-side role lookup pattern should be revisited as admin tooling expands, even though the present flow is fail-closed in repo code
 
 ### Current Implementation Progress
 
-- Greenfield Next.js app scaffold created
-- Auth-related forms and guard helpers implemented with unit tests
-- Protected route structure and middleware scaffold created
-- Supabase-backed sign-in, password setup, live session resolution, and role lookup are still pending
+- Next.js App Router scaffold, global styling, and public marketing shell are implemented
+- Supabase-backed login, password setup, auth callback confirmation, live session resolution, and role lookup are implemented in repo code
+- Protected dashboard and superadmin routes are implemented and fail closed on missing or invalid role state
+- Supabase migrations exist for `organisations`, `admin_users`, `tags`, `found_events`, and `found_event_rejections`
+- Public marketing pages for `/` and `/schools/pouch-protection` are implemented with tested placeholder contact routing
+- Public finder submission handling, email notification delivery, and superadmin operational tooling are still pending
 
 ### Next Recommended Task
 
-Wire the auth foundation to a real Supabase project so login, password setup, and protected session handling move from placeholder scaffold to working tenant-aware authentication.
+Implement the approved phase-2 superadmin workflow: school creation, pending school-admin metadata, and CSV-driven tag provisioning to `organisation_id`.
 
 ## Priority Order
 
 ### Now
 
-1. School admin authentication and invite-based account activation
-2. Superadmin school creation and role assignment
-3. Protected portal shell and route gating
+1. Superadmin school creation and pending school-admin metadata
+2. CSV-driven tag provisioning for schools
+3. Student CSV import
 
 ### Next
 
-1. Student CSV import
-2. Tag provisioning for schools
-3. Manual tag assignment to students
+1. Manual tag assignment to students by scan-to-register workflow
+2. Public finder submission flow and school email notifications
+3. Events log
 
 ### After
 
 1. Bulk tag assignment by CSV
-2. Public finder page
-3. Found-event submission and school email notifications
-4. Events log
-5. Settings page
-6. Dashboard summary cards
+2. Settings page
+3. Dashboard summary cards
+4. Finder-facing confirmation and recovery-status surfaces
 
 ## Deferred Post-MVP Backlog
 
