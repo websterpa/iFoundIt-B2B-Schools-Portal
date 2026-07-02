@@ -50,6 +50,7 @@ a {
 
 .marketing-header__inner,
 .marketing-page,
+.marketing-main,
 .marketing-footer {
   width: min(1100px, calc(100% - 2rem));
   margin: 0 auto;
@@ -123,9 +124,7 @@ a {
 }
 
 .marketing-main {
-  width: min(1120px, calc(100% - 2rem));
-  margin: 0 auto;
-  padding: 3rem 0 4rem;
+  padding: 3.5rem 0 4rem;
 }
 
 .marketing-hero,
@@ -296,10 +295,6 @@ a {
   margin-top: 0.75rem;
 }
 
-.marketing-nav__link--utility {
-  color: var(--uupm-text);
-}
-
 .marketing-footer {
   padding: 0 0 2rem;
   color: var(--uupm-text-muted);
@@ -316,7 +311,8 @@ a {
     justify-content: flex-start;
   }
 
-  .marketing-page {
+  .marketing-page,
+  .marketing-main {
     padding-top: 2rem;
   }
 }

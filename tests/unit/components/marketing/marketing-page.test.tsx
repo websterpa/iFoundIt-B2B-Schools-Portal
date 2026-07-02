@@ -11,7 +11,7 @@ import {
 
 describe('marketing page primitives', () => {
   it('renders a consistent hero and section structure', () => {
-    render(
+    const { container } = render(
       <>
         <MarketingHero eyebrow="For schools" title="Bring your own device. Seal it. Get it back.">
           <p>Body copy</p>
@@ -25,8 +25,19 @@ describe('marketing page primitives', () => {
       </>
     )
 
-    expect(screen.getByText(/for schools/i)).toHaveClass('marketing-eyebrow')
-    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(/bring your own device/i)
-    expect(screen.getByRole('heading', { level: 2 })).toHaveTextContent(/what your school gets/i)
+    const heroHeading = screen.getByRole('heading', { level: 1 })
+    const sectionHeading = screen.getByRole('heading', { level: 2 })
+    const eyebrow = screen.getByText(/for schools/i)
+    const hero = heroHeading.closest('section')
+    const section = sectionHeading.closest('section')
+    const ctaLink = screen.getByRole('link', { name: /request a pilot/i })
+    const ctaRow = ctaLink.closest('div')
+
+    expect(hero).toHaveClass('marketing-hero')
+    expect(eyebrow).toHaveClass('marketing-eyebrow')
+    expect(container.querySelector('.marketing-stack')).toContainElement(ctaLink)
+    expect(section).toHaveClass('marketing-section')
+    expect(sectionHeading.parentElement).toHaveClass('marketing-section__heading')
+    expect(ctaRow).toHaveClass('marketing-actions')
   })
 })
