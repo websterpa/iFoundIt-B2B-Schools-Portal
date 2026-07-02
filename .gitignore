@@ -10,6 +10,12 @@ coverage
 .env.local.save
 .vscode
 .idea
+.claude
+.impeccable
+Claude Code
+frontend-design Skill
 *.log
 *.tsbuildinfo
 dist
+._*
+~$*

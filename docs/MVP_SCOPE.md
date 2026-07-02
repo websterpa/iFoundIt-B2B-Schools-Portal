@@ -23,10 +23,13 @@ Deliver a working school portal that supports the end-to-end pouch recovery loop
 - Manual and CSV-based tag assignment
 - Public finder page by tag serial
 - Found-event submission flow
+- Finder-flow anti-spam controls: per-tag debounce, honeypot, time-trap, and IP rate limiting
+- Finder-flow rejection logging for operational review
 - Email notification to school
 - Recovery events log
 - Basic dashboard counts
 - School settings for contact details and logo
+- Public school-facing pouch-protection information page at `/schools/pouch-protection`
 
 ## Explicitly Out Of Scope
 
@@ -50,5 +53,7 @@ Deliver a working school portal that supports the end-to-end pouch recovery loop
 ## Guardrails
 
 - Do not expose student identity on public pages
+- Do not expose student identity on public pages or public school-marketing pages
+- Do not ship finder submission paths that bypass RLS or silently drop spam rejections without logging
 - Do not add features that require a broader support or operations model than the pilot can sustain
 - Prefer additive, reversible decisions that keep the pilot launch on schedule

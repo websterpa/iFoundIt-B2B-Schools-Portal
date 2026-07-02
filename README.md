@@ -99,8 +99,11 @@ Useful commands:
 - `supabase link --project-ref uwzyilyvsjkrmzwakkwa`
 - `supabase migration new <name>`
 - `supabase db pull <name>`
+- `supabase start`
+- `npm run test:supabase-local`
 
 Notes:
 
 - `supabase link` and remote `db pull` require a Supabase access token and the remote database password.
 - Local stack commands such as `supabase start` require Docker.
+- `npm run test:supabase-local` verifies the onboarding migration chain against the local Supabase database by inserting and querying a temporary school, pending admin, and provisioned tags, then cleaning them up automatically.

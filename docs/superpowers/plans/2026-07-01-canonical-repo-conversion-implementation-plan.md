@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Turn `/Volumes/Hymer SSD/iFoundIt B2B Schools Portal` into the canonical local git repository for the project, with repo hygiene good enough for normal GitHub use.
+**Goal:** Turn the current project folder into the canonical local git repository for the project, with repo hygiene good enough for normal GitHub use.
 
 **Architecture:** Keep the application code and docs intact, remove local machine metadata from version control scope, preserve local-only secrets, and initialize a fresh git repository at the current folder root. Treat this as a repository-foundation task rather than an app refactor.
 
@@ -84,7 +84,7 @@ Expected: no output.
 - [ ] **Step 1: Initialize git at the current folder root**
 
 Run: `git init -b main`
-Expected: a new repository is created in `/Volumes/Hymer SSD/iFoundIt B2B Schools Portal/.git`.
+Expected: a new repository is created in the current project root's `.git` directory.
 
 - [ ] **Step 2: Verify branch state**
 

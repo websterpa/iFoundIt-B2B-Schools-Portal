@@ -1,5 +1,9 @@
 # Product Overview
 
+## Register
+
+product
+
 ## Product
 
 iFoundIt B2B Schools Portal is a dedicated portal for UK secondary schools using NFC-tagged student phone pouches. It allows school staff to manage tagged assets and receive safe, privacy-preserving recovery notifications when a lost pouch is found by a member of the public.
@@ -18,6 +22,7 @@ Phone pouches used under school device-locking policies are visually identical. 
 ### Secondary users
 
 - Members of the public who find a pouch and want to report it
+- School leaders exploring pouch-protection add-ons before they commit to rollout
 
 ## Product Goals
 
@@ -32,10 +37,12 @@ Phone pouches used under school device-locking policies are visually identical. 
 - A school admin can import students and assign tags without manual record-by-record setup
 - A public finder can notify a school in under a minute without needing an account
 - A school receives and tracks recovery notifications reliably
+- Public school-facing information can explain pouch protection without exposing authenticated app surfaces
 
 ## Product Principles
 
 - Privacy first: no student PII on public finder pages
+- Abuse-aware by default: public finder submissions must reject obvious spam and log operationally useful rejection outcomes
 - Operational simplicity: optimise for quick school setup and low training overhead
 - Clear tenancy boundaries: each school only sees its own data
 - MVP discipline: only build what is required to support pilot-school recovery workflows
