@@ -18,6 +18,9 @@ describe('how it works marketing page', () => {
       screen.getByRole('heading', { level: 2, name: /the recovery path/i })
     ).toBeInTheDocument()
     expect(
+      screen.getByRole('heading', { level: 2, name: /what makes this safer/i })
+    ).toBeInTheDocument()
+    expect(
       screen.getByText(/the school remains the contact point/i)
     ).toBeInTheDocument()
   })
