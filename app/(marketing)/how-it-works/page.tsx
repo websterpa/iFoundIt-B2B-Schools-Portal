@@ -14,8 +14,8 @@ export default function HowItWorksPage() {
           A pouch, a tag, and a page. Here is what happens at each stage.
         </p>
       </MarketingHero>
-      <MarketingSection>
-        <MarketingSectionHeading title="The recovery path" />
+      <MarketingSection labelledBy="how-it-works-recovery-path">
+        <MarketingSectionHeading id="how-it-works-recovery-path" title="The recovery path" />
         <ol className="marketing-steps">
           <li>
             <strong>Seal the pouch.</strong> The pupil seals their phone in the pouch at the start
@@ -35,8 +35,8 @@ export default function HowItWorksPage() {
           </li>
         </ol>
       </MarketingSection>
-      <MarketingSection>
-        <MarketingSectionHeading title="What makes this safer" />
+      <MarketingSection labelledBy="how-it-works-safer">
+        <MarketingSectionHeading id="how-it-works-safer" title="What makes this safer" />
         <p className="marketing-lead">
           The school remains the contact point, the tag does not publish pupil information, and
           the public recovery flow is shaped for privacy-first reporting.

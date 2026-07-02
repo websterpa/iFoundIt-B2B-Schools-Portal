@@ -17,9 +17,12 @@ export default function ContactPage() {
           Tell us a little about your school and we will get back to you to arrange a time.
         </p>
       </MarketingHero>
-      <MarketingSection>
-        <MarketingSectionHeading title="Start the conversation" />
-        <form className="marketing-form">
+      <MarketingSection labelledBy="contact-start-the-conversation">
+        <MarketingSectionHeading
+          id="contact-start-the-conversation"
+          title="Start the conversation"
+        />
+        <form aria-describedby="contact-form-note" className="marketing-form">
           <label>
             School name
             <input name="school" type="text" required />
@@ -44,7 +47,11 @@ export default function ContactPage() {
             Notes
             <textarea name="notes" rows={4} />
           </label>
-          <button className="marketing-button marketing-button--primary" type="submit">
+          <p className="marketing-note marketing-form__note" id="contact-form-note">
+            Demo scheduling is handled manually right now. Use these fields as a planning checklist
+            while the live booking workflow is still being wired in.
+          </p>
+          <button className="marketing-button marketing-button--primary" type="button">
             Request a demo
           </button>
         </form>

@@ -21,8 +21,8 @@ export default function ForSchoolsPage() {
           </Link>
         </div>
       </MarketingHero>
-      <MarketingSection>
-        <MarketingSectionHeading title="What your school gets" />
+      <MarketingSection labelledBy="for-schools-what-you-get">
+        <MarketingSectionHeading id="for-schools-what-you-get" title="What your school gets" />
         <div className="marketing-grid">
           <article className="marketing-card">
             <h3>Pre-tagged pouches</h3>
@@ -46,8 +46,8 @@ export default function ForSchoolsPage() {
           </article>
         </div>
       </MarketingSection>
-      <MarketingSection>
-        <MarketingSectionHeading title="Getting started" />
+      <MarketingSection labelledBy="for-schools-getting-started">
+        <MarketingSectionHeading id="for-schools-getting-started" title="Getting started" />
         <div className="marketing-grid marketing-grid--steps">
           <article className="marketing-card">
             <h3>Order pouches</h3>
@@ -65,8 +65,8 @@ export default function ForSchoolsPage() {
           </article>
         </div>
       </MarketingSection>
-      <MarketingSection>
-        <MarketingSectionHeading title="Requirements" />
+      <MarketingSection labelledBy="for-schools-requirements">
+        <MarketingSectionHeading id="for-schools-requirements" title="Requirements" />
         <p className="marketing-lead">
           No school-side app or software installation is required. The public recovery path depends
           on a finder using an NFC-capable phone to tap the tag.

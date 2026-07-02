@@ -17,20 +17,32 @@ export function MarketingHero({ eyebrow, title, children }: MarketingHeroProps) 
   )
 }
 
-export function MarketingSection({ children }: { children: ReactNode }) {
-  return <section className="marketing-section">{children}</section>
+export function MarketingSection({
+  children,
+  labelledBy
+}: {
+  children: ReactNode
+  labelledBy?: string
+}) {
+  return (
+    <section aria-labelledby={labelledBy} className="marketing-section">
+      {children}
+    </section>
+  )
 }
 
 export function MarketingSectionHeading({
+  id,
   title,
   intro
 }: {
+  id?: string
   title: string
   intro?: string
 }) {
   return (
     <div className="marketing-section__heading">
-      <h2>{title}</h2>
+      <h2 id={id}>{title}</h2>
       {intro ? <p className="marketing-lead">{intro}</p> : null}
     </div>
   )

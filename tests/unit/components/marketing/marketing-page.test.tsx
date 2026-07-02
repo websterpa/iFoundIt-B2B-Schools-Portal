@@ -10,7 +10,7 @@ import {
 } from '@/components/marketing/marketing-page'
 
 describe('marketing page primitives', () => {
-  it('renders a consistent hero and section structure', () => {
+  it('renders a consistent hero and named section landmark structure', () => {
     const { container } = render(
       <>
         <MarketingHero eyebrow="For schools" title="Bring your own device. Seal it. Get it back.">
@@ -19,14 +19,15 @@ describe('marketing page primitives', () => {
             <a href="/contact">Request a pilot</a>
           </MarketingCtaRow>
         </MarketingHero>
-        <MarketingSection>
-          <MarketingSectionHeading title="What your school gets" />
+        <MarketingSection labelledBy="what-your-school-gets">
+          <MarketingSectionHeading id="what-your-school-gets" title="What your school gets" />
         </MarketingSection>
       </>
     )
 
     const heroHeading = screen.getByRole('heading', { level: 1 })
     const sectionHeading = screen.getByRole('heading', { level: 2 })
+    const sectionRegion = screen.getByRole('region', { name: /what your school gets/i })
     const eyebrow = screen.getByText(/for schools/i)
     const hero = heroHeading.closest('section')
     const section = sectionHeading.closest('section')
@@ -37,7 +38,9 @@ describe('marketing page primitives', () => {
     expect(eyebrow).toHaveClass('marketing-eyebrow')
     expect(container.querySelector('.marketing-stack')).toContainElement(ctaLink)
     expect(section).toHaveClass('marketing-section')
+    expect(sectionRegion).toHaveAttribute('aria-labelledby', 'what-your-school-gets')
     expect(sectionHeading.parentElement).toHaveClass('marketing-section__heading')
+    expect(sectionHeading).toHaveAttribute('id', 'what-your-school-gets')
     expect(ctaRow).toHaveClass('marketing-actions')
   })
 })

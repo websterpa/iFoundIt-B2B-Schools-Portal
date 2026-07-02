@@ -222,6 +222,46 @@ a {
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
 }
 
+.marketing-form {
+  display: grid;
+  gap: 1rem;
+  max-width: 42rem;
+}
+
+.marketing-form label {
+  display: grid;
+  gap: 0.45rem;
+  font-weight: 700;
+}
+
+.marketing-form input,
+.marketing-form select,
+.marketing-form textarea {
+  width: 100%;
+  border: 1px solid var(--uupm-border);
+  border-radius: 1rem;
+  background: var(--uupm-surface-strong);
+  color: var(--uupm-text);
+  padding: 0.85rem 1rem;
+  font: inherit;
+}
+
+.marketing-form textarea {
+  resize: vertical;
+  min-height: 8rem;
+}
+
+.marketing-form input:focus-visible,
+.marketing-form select:focus-visible,
+.marketing-form textarea:focus-visible {
+  outline: 2px solid var(--uupm-highlight);
+  outline-offset: 2px;
+}
+
+.marketing-form__note {
+  max-width: 34rem;
+}
+
 .marketing-card,
 .marketing-section {
   border-radius: 1.5rem;

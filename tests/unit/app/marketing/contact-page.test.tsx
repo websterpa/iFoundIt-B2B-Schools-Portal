@@ -17,6 +17,7 @@ describe('contact marketing page', () => {
     expect(
       screen.getByRole('heading', { level: 2, name: /start the conversation/i })
     ).toBeInTheDocument()
+    expect(screen.getByRole('region', { name: /start the conversation/i })).toBeInTheDocument()
 
     expect(screen.getByLabelText(/school name/i)).toHaveAttribute('name', 'school')
     expect(screen.getByLabelText(/your role/i)).toHaveAttribute('name', 'role')
@@ -24,6 +25,10 @@ describe('contact marketing page', () => {
     expect(screen.getByLabelText(/work email/i)).toHaveAttribute('name', 'email')
     expect(screen.getByLabelText(/roll-out scope/i)).toHaveAttribute('name', 'scope')
     expect(screen.getByLabelText(/notes/i)).toHaveAttribute('name', 'notes')
-    expect(screen.getByRole('button', { name: /request a demo/i })).toBeInTheDocument()
+    expect(screen.getByText(/demo scheduling is handled manually/i)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /request a demo/i })).toHaveAttribute(
+      'type',
+      'button'
+    )
   })
 })

@@ -17,12 +17,15 @@ describe('for schools marketing page', () => {
     expect(
       screen.getByRole('heading', { level: 2, name: /what your school gets/i })
     ).toBeInTheDocument()
+    expect(screen.getByRole('region', { name: /what your school gets/i })).toBeInTheDocument()
     expect(
       screen.getByRole('heading', { level: 2, name: /getting started/i })
     ).toBeInTheDocument()
+    expect(screen.getByRole('region', { name: /getting started/i })).toBeInTheDocument()
     expect(
       screen.getByRole('heading', { level: 2, name: /requirements/i })
     ).toBeInTheDocument()
+    expect(screen.getByRole('region', { name: /requirements/i })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /request a pilot/i })).toHaveAttribute(
       'href',
       '/contact'
