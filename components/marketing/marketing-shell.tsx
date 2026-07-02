@@ -29,22 +29,24 @@ export function MarketingShell({ children }: MarketingShellProps) {
             <span className="marketing-brand__name">iFoundIt Schools</span>
             <span className="marketing-brand__tagline">Recovery workflows for phone pouch rollouts</span>
           </Link>
-          <nav aria-label="Primary" className="marketing-nav">
-            <Link className="marketing-nav__link" href="/">
-              Home
-            </Link>
-            {primaryLinks.map((link) => (
-              <Link key={link.href} className="marketing-nav__link" href={link.href}>
-                {link.label}
+          <div className="marketing-nav-rail">
+            <nav aria-label="Primary" className="marketing-nav">
+              <Link className="marketing-nav__link" href="/">
+                Home
               </Link>
-            ))}
-            <Link className="marketing-nav__link" href="/contact">
-              Book a demo
-            </Link>
-            <Link className="marketing-nav__link marketing-nav__link--accent" href="/login">
-              Portal login
-            </Link>
-          </nav>
+              {primaryLinks.map((link) => (
+                <Link key={link.href} className="marketing-nav__link" href={link.href}>
+                  {link.label}
+                </Link>
+              ))}
+              <Link className="marketing-nav__link" href="/contact">
+                Book a demo
+              </Link>
+              <Link className="marketing-nav__link marketing-nav__link--accent" href="/login">
+                Portal login
+              </Link>
+            </nav>
+          </div>
         </div>
       </header>
       {children}

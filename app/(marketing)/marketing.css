@@ -1,0 +1,5 @@
+.e4s-scope {
+  background: var(--e4s-paper);
+  color: var(--e4s-ink);
+  font-family: var(--e4s-font-body);
+}

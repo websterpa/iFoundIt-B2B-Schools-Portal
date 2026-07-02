@@ -10,9 +10,11 @@ type MarketingHeroProps = {
 export function MarketingHero({ eyebrow, title, children }: MarketingHeroProps) {
   return (
     <section className="marketing-hero">
-      {eyebrow ? <p className="marketing-eyebrow">{eyebrow}</p> : null}
-      <h1>{title}</h1>
-      <div className="marketing-stack">{children}</div>
+      <div className="marketing-hero__content">
+        {eyebrow ? <p className="marketing-eyebrow">{eyebrow}</p> : null}
+        <h1>{title}</h1>
+        <div className="marketing-stack">{children}</div>
+      </div>
     </section>
   )
 }
