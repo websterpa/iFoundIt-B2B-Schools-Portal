@@ -11,7 +11,7 @@ describe('marketing homepage', () => {
     expect(
       screen.getByRole('heading', {
         level: 1,
-        name: /every phone finds its way home/i
+        name: "Every phone finds its way home. Without touching a pupil's own device."
       })
     ).toBeInTheDocument()
     expect(
@@ -21,6 +21,16 @@ describe('marketing homepage', () => {
       screen.getByRole('heading', { level: 2, name: /why schools choose ifoundit schools/i })
     ).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /request a pilot/i })).toHaveAttribute(
+      'href',
+      '/contact'
+    )
+    expect(
+      screen.getByRole('heading', {
+        level: 2,
+        name: /see the pouch, tag, and finder page in action/i
+      })
+    ).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /book a demo/i })).toHaveAttribute(
       'href',
       '/contact'
     )
