@@ -13,6 +13,19 @@ describe('MarketingShell', () => {
     )
 
     const primaryNav = screen.getByRole('navigation', { name: /primary/i })
+    const primaryLinks = within(primaryNav).getAllByRole('link')
+
+    expect(primaryLinks).toHaveLength(8)
+    expect(primaryLinks.map((link) => ({ name: link.textContent, href: link.getAttribute('href') }))).toEqual([
+      { name: 'Home', href: '/' },
+      { name: 'For schools', href: '/for-schools' },
+      { name: 'How it works', href: '/how-it-works' },
+      { name: 'Security', href: '/security' },
+      { name: 'Pricing', href: '/pricing' },
+      { name: 'FAQs', href: '/faqs' },
+      { name: 'Book a demo', href: '/contact' },
+      { name: 'Portal login', href: '/login' }
+    ])
 
     expect(within(primaryNav).getByRole('link', { name: /home/i })).toHaveAttribute('href', '/')
     expect(within(primaryNav).getByRole('link', { name: /for schools/i })).toHaveAttribute('href', '/for-schools')
@@ -22,6 +35,7 @@ describe('MarketingShell', () => {
     expect(within(primaryNav).getByRole('link', { name: /faqs/i })).toHaveAttribute('href', '/faqs')
     expect(within(primaryNav).getByRole('link', { name: /book a demo/i })).toHaveAttribute('href', '/contact')
     expect(within(primaryNav).getByRole('link', { name: /portal login/i })).toHaveAttribute('href', '/login')
+    expect(within(primaryNav).queryByRole('link', { name: /phone pouch protection/i })).not.toBeInTheDocument()
   })
 
   it('renders footer links for the public funnel', () => {
@@ -32,6 +46,14 @@ describe('MarketingShell', () => {
     )
 
     const footerNav = screen.getByRole('navigation', { name: /footer/i })
+    const footerLinks = within(footerNav).getAllByRole('link')
+
+    expect(footerLinks).toHaveLength(3)
+    expect(footerLinks.map((link) => ({ name: link.textContent, href: link.getAttribute('href') }))).toEqual([
+      { name: 'FAQs', href: '/faqs' },
+      { name: 'Security', href: '/security' },
+      { name: 'Contact', href: '/contact' }
+    ])
 
     expect(within(footerNav).getByRole('link', { name: /contact/i })).toHaveAttribute('href', '/contact')
     expect(within(footerNav).getByRole('link', { name: /faqs/i })).toHaveAttribute('href', '/faqs')
