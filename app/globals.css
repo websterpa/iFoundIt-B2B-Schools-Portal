@@ -222,6 +222,36 @@ a {
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
 }
 
+.marketing-table-wrap {
+  overflow-x: auto;
+}
+
+.marketing-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 42rem;
+}
+
+.marketing-table th,
+.marketing-table td {
+  border-bottom: 1px solid var(--uupm-border);
+  padding: 1rem;
+  text-align: left;
+  vertical-align: top;
+}
+
+.marketing-table th {
+  color: var(--uupm-text);
+  font-size: 0.85rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.marketing-table td {
+  color: var(--uupm-text-muted);
+  line-height: 1.6;
+}
+
 .marketing-form {
   display: grid;
   gap: 1rem;
