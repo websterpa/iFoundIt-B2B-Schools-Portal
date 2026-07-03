@@ -259,10 +259,15 @@
 }
 
 .marketing-trust-line {
-  padding: 0 0 88px;
+  margin: 16px auto 0;
+  max-width: 44ch;
+  padding: 0 24px;
   text-align: center;
-  font-size: 14px;
-  color: var(--colour-text-secondary);
+  font-size: clamp(20px, 2.1vw, 30px);
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  font-weight: 600;
+  color: var(--colour-text-primary);
 }
 
 /* ---------- Grid + card (previously missing) ---------- */
