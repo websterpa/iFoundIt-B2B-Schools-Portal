@@ -219,19 +219,25 @@
 
 /* Previously missing: renders the illustration pane beside the hero copy */
 .marketing-hero__aside {
-  background: var(--colour-bg-alt);
-  border: 1px solid var(--colour-border);
-  border-radius: 28px;
-  padding: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 .marketing-hero__media {
+  position: relative;
   width: 100%;
-  border-radius: 20px;
+  border-radius: 32px;
   overflow: hidden;
   aspect-ratio: 16 / 9;
+}
+.marketing-hero__media::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 30%;
+  background: linear-gradient(to right, #ffffff 0%, rgba(255, 255, 255, 0) 100%);
+  pointer-events: none;
+  z-index: 1;
 }
 
 .marketing-ripple {
