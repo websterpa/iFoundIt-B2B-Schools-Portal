@@ -4,14 +4,29 @@ import { MarketingHero, MarketingSection } from '@/components/marketing/marketin
 
 const faqs = [
   {
-    question: 'Does a pupil need an app?',
+    question: 'What happens when a pouch is lost?',
     answer:
-      'No. Finding a pouch only needs a tap with an NFC-capable phone. There is nothing for the pupil or finder to install.'
+      'The finder scans the tag, follows the finder page, and the recovery route alerts the school office.'
   },
   {
-    question: 'Does the tag expose pupil information?',
+    question: 'What data is on the tag?',
     answer:
       'No. The tag identifies the pouch and the school. It does not publish the pupil name, phone number, or other personal details.'
+  },
+  {
+    question: 'What does the finder see?',
+    answer:
+      'The finder sees a recovery page for the pouch and school, not a pupil profile or private contact record.'
+  },
+  {
+    question: 'Who is alerted?',
+    answer:
+      'The school office is the recovery contact point so staff can decide the next step under school policy.'
+  },
+  {
+    question: 'How does this fit a BYOD policy?',
+    answer:
+      'The phone remains the pupil-owned device. iFoundIt Schools attaches recovery to the pouch the school manages.'
   }
 ]
 
@@ -26,14 +41,14 @@ export default function FaqsPage() {
       </MarketingHero>
 
       <MarketingSection>
-        <div className="marketing-faq">
+        <dl className="marketing-definition-list">
           {faqs.map((item) => (
-            <article key={item.question} className="marketing-faq__item">
-              <h2>{item.question}</h2>
-              <p>{item.answer}</p>
-            </article>
+            <div key={item.question} className="marketing-definition-list__item">
+              <dt>{item.question}</dt>
+              <dd>{item.answer}</dd>
+            </div>
           ))}
-        </div>
+        </dl>
       </MarketingSection>
     </main>
   )

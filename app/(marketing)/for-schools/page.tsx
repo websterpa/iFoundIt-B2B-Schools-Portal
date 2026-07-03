@@ -10,10 +10,10 @@ import {
 export default function ForSchoolsPage() {
   return (
     <main className="marketing-main">
-      <MarketingHero eyebrow="For schools" title="Bring your own device. Seal it. Get it back.">
+      <MarketingHero eyebrow="For schools" title="Procurement-ready recovery for BYOD pouch rollouts">
         <p className="marketing-lead">
           iFoundIt Schools is built for schools that already allow pupils to bring their own phones
-          and want a straightforward way to manage them during the day.
+          and want a straightforward recovery route when a sealed pouch leaves the building.
         </p>
         <div className="marketing-actions">
           <Link className="marketing-button marketing-button--primary" href="/contact">
@@ -23,26 +23,22 @@ export default function ForSchoolsPage() {
       </MarketingHero>
       <MarketingSection labelledBy="for-schools-what-you-get">
         <MarketingSectionHeading id="for-schools-what-you-get" title="What your school gets" />
-        <div className="marketing-grid">
-          <article className="marketing-card">
-            <h3>Pre-tagged pouches</h3>
-            <p>Pouches arrive with an NFC tag already fitted and ready to register.</p>
+        <div className="marketing-document-list">
+          <article className="marketing-document-list__item">
+            <h3>Rollout in a working session</h3>
+            <p>Operational detail: staff provision the pouch register in a focused setup session, with each pouch linked to the school record.</p>
           </article>
-          <article className="marketing-card">
-            <h3>A registration portal</h3>
-            <p>Office staff register each pouch to the school in a few minutes per form group.</p>
+          <article className="marketing-document-list__item">
+            <h3>No handsets to buy or manage</h3>
+            <p>Operational detail: pupils continue using their own phones; iFoundIt Schools supports the pouch recovery layer.</p>
           </article>
-          <article className="marketing-card">
-            <h3>A finder page under your school name</h3>
-            <p>
-              Anyone who finds a pouch sees your school identity, not a third-party brand detour.
-            </p>
+          <article className="marketing-document-list__item">
+            <h3>Pouches arrive ready to provision</h3>
+            <p>Operational detail: tags are fitted before rollout, so the school team starts from serial registration rather than hardware preparation.</p>
           </article>
-          <article className="marketing-card">
-            <h3>No pupil accounts</h3>
-            <p>
-              There is nothing for pupils to log in to and nothing tied to their personal details.
-            </p>
+          <article className="marketing-document-list__item">
+            <h3>School office remains the recovery point</h3>
+            <p>Operational detail: finders are routed to a school-facing process instead of pupil contact details.</p>
           </article>
         </div>
       </MarketingSection>

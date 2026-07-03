@@ -9,7 +9,7 @@ type MarketingLayoutProps = {
 
 export default function MarketingLayout({ children }: MarketingLayoutProps) {
   return (
-    <div className="e4s-scope">
+    <div className="ifs-scope">
       <MarketingShell>{children}</MarketingShell>
     </div>
   )

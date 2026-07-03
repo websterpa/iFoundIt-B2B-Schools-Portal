@@ -11,7 +11,7 @@ describe('for schools marketing page', () => {
     expect(
       screen.getByRole('heading', {
         level: 1,
-        name: /bring your own device\. seal it\. get it back\./i
+        name: /procurement-ready recovery for byod pouch rollouts/i
       })
     ).toBeInTheDocument()
     expect(

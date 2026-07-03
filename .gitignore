@@ -19,3 +19,8 @@ frontend-design Skill
 dist
 ._*
 ~$*
+
+# Local artifact and scratch output directories
+.playwright-mcp/
+tmp/
+components/marketing/Apple-Stripe Redesign files-2/

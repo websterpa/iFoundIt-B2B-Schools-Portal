@@ -5,18 +5,15 @@ import { describe, expect, it } from 'vitest'
 import PricingPage from '@/app/(marketing)/pricing/page'
 
 describe('marketing pricing page', () => {
-  it('renders scoped pricing without placeholder figures', () => {
+  it('renders quote-first pricing copy and common questions', () => {
     render(<PricingPage />)
 
     expect(
-      screen.getByRole('heading', { level: 1, name: /priced for school roll-outs/i })
+      screen.getByRole('heading', { level: 1, name: /talk to us for a quote/i })
     ).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: /what pricing will reflect/i })).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: /pouch volume/i })).toBeInTheDocument()
-    expect(screen.queryByText(/\[.*\]/)).not.toBeInTheDocument()
-    expect(screen.getByRole('link', { name: /request pricing/i })).toHaveAttribute(
-      'href',
-      '/contact'
-    )
+    expect(screen.getByRole('heading', { name: /get pricing for your school/i })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /common questions/i })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /how is pricing structured/i })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /book a demo/i })).toHaveAttribute('href', '/#demo')
   })
 })

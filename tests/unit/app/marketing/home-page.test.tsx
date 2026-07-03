@@ -5,34 +5,28 @@ import { describe, expect, it } from 'vitest'
 import HomePage from '@/app/(marketing)/page'
 
 describe('marketing homepage', () => {
-  it('renders the new school-facing funnel sections', () => {
+  it('renders the redesigned single-page marketing sections', () => {
     render(<HomePage />)
 
     expect(
       screen.getByRole('heading', {
         level: 1,
-        name: "Every phone finds its way home. Without touching a pupil's own device."
+        name: /one tap on the pouch brings a lost phone home/i
       })
     ).toBeInTheDocument()
     expect(
-      screen.getByRole('heading', { level: 2, name: /three steps, one policy/i })
+      screen.getByRole('heading', { level: 2, name: /designed around the pouch you already own/i })
     ).toBeInTheDocument()
     expect(
-      screen.getByRole('heading', { level: 2, name: /why schools choose ifoundit schools/i })
+      screen.getByRole('heading', { level: 2, name: /from locked pouch to safe return/i })
     ).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: /request a pilot/i })).toHaveAttribute(
-      'href',
-      '/contact'
-    )
     expect(
-      screen.getByRole('heading', {
-        level: 2,
-        name: /see the pouch, tag, and finder page in action/i
-      })
+      screen.getByRole('heading', { level: 2, name: /built with school data in mind/i })
     ).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: /book a demo/i })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: /book a school demo/i })).toHaveAttribute('href', '#demo')
+    expect(screen.getByRole('link', { name: /how recovery works/i })).toHaveAttribute(
       'href',
-      '/contact'
+      '#how-it-works'
     )
   })
 })

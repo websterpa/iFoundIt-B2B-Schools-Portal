@@ -1,55 +1,62 @@
-import Link from 'next/link'
-import React from 'react'
+import React from "react";
+import Link from "next/link";
+import { PageHeader } from "@/components/marketing/page-header";
 
-import {
-  MarketingHero,
-  MarketingSection,
-  MarketingSectionHeading
-} from '@/components/marketing/marketing-page'
+// No tier names, feature splits, or figures are invented here. Pricing
+// structure (per-pupil, per-site, annual vs termly) isn't something to
+// guess at on a live commercial page — this ships as a quote-based CTA
+// until real numbers are confirmed, at which point the panel below is
+// the place to put them.
+
+const FAQ = [
+  {
+    q: "How is pricing structured?",
+    a: "Pending confirmation — per-pupil and per-site models are both possible depending on school size.",
+  },
+  {
+    q: "Is there a setup or installation fee?",
+    a: "Pending confirmation.",
+  },
+  {
+    q: "Do you offer a trial or pilot period?",
+    a: "Pending confirmation.",
+  },
+  {
+    q: "Does this replace our existing pouches?",
+    a: "No. Tags attach to the mag-lock pouches you already use.",
+  },
+];
 
 export default function PricingPage() {
   return (
-    <main className="marketing-main">
-      <MarketingHero
+    <>
+      <PageHeader
         eyebrow="Pricing"
-        title="Priced for school roll-outs, not for per-pupil admin overhead"
-      >
-        <p className="marketing-lead">
-          iFoundIt Schools is designed for school and trust roll-outs. We scope pricing around
-          pouch volume, onboarding support, and rollout shape.
-        </p>
-        <div className="marketing-actions">
-          <Link className="marketing-button marketing-button--primary" href="/contact">
-            Request pricing
-          </Link>
-        </div>
-      </MarketingHero>
+        title="Talk to us for a quote"
+        lede="Pricing is confirmed per school during the demo call, based on pupil numbers and site count."
+      />
 
-      <MarketingSection>
-        <MarketingSectionHeading title="What pricing will reflect" />
-        <div className="marketing-grid">
-          <article className="marketing-card">
-            <h3>Pouch volume</h3>
-            <p>
-              Pricing scales with the number of pouches and year groups involved in the rollout.
+      <section className="marketing__section">
+        <div className="marketing__container">
+          <div className="marketing-pricing-panel">
+            <h2>Get pricing for your school</h2>
+            <p className="marketing__lede" style={{ margin: "0 auto 24px" }}>
+              Book a 20-minute call and we&apos;ll walk through numbers for your pupil count and site setup.
             </p>
-          </article>
-          <article className="marketing-card">
-            <h3>Onboarding support</h3>
-            <p>
-              Schools may need different levels of setup help depending on who handles registration
-              and rollout.
-            </p>
-          </article>
-          <article className="marketing-card">
-            <h3>Single school or trust</h3>
-            <p>
-              Enquiry-friendly scoping supports either one school or a grouped rollout without
-              inventing fixed commercial tiers.
-            </p>
-          </article>
+            <Link href="/#demo" className="btn btn--primary">Book a demo</Link>
+          </div>
+
+          <h2>Common questions</h2>
+          <div className="marketing-faq">
+            {FAQ.map((item) => (
+              <div className="marketing-faq__item" key={item.q}>
+                <h3>{item.q}</h3>
+                <p>{item.a}</p>
+              </div>
+            ))}
+          </div>
         </div>
-      </MarketingSection>
-    </main>
-  )
+      </section>
+    </>
+  );
 }

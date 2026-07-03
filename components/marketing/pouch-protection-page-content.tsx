@@ -27,15 +27,15 @@ export function PouchProtectionPageContent() {
 
       <MarketingSection>
         <MarketingSectionHeading title="Why keep this route live" />
-        <div className="marketing-grid">
-          <article className="marketing-card">
+        <div className="marketing-document-list">
+          <article className="marketing-document-list__item">
             <h3>Add to the pouch system you already use</h3>
             <p>
               This is a recovery layer for existing school pouch rollouts, not a replacement for the
               pouch policy itself.
             </p>
           </article>
-          <article className="marketing-card">
+          <article className="marketing-document-list__item">
             <h3>Keep the school as the contact point</h3>
             <p>
               The tag is registered to the school so recovery starts with your team rather than
@@ -47,14 +47,14 @@ export function PouchProtectionPageContent() {
 
       <MarketingSection>
         <MarketingSectionHeading title="Questions schools ask" />
-        <div className="marketing-faq">
-          <article className="marketing-faq__item">
+        <div className="marketing-document-list">
+          <article className="marketing-document-list__item">
             <h3>Does this replace our current pouch supplier?</h3>
             <p>
               No. It is designed to complement the pouch rollout your school already operates.
             </p>
           </article>
-          <article className="marketing-faq__item">
+          <article className="marketing-document-list__item">
             <h3>Who sees pupil contact details?</h3>
             <p>
               Nobody through the tag itself. The route leads back to the school, which already holds
