@@ -171,7 +171,7 @@
   background: var(--colour-accent-hover);
 }
 .btn--ghost {
-  background: transparent;
+  background: var(--colour-bg);
   color: var(--colour-text);
   border-color: var(--colour-border-strong);
 }
@@ -221,11 +221,17 @@
 .marketing-hero__aside {
   background: var(--colour-bg-alt);
   border: 1px solid var(--colour-border);
-  border-radius: var(--radius-lg);
-  padding: 40px;
+  border-radius: 28px;
+  padding: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
+}
+.marketing-hero__media {
+  width: 100%;
+  border-radius: 20px;
+  overflow: hidden;
+  aspect-ratio: 16 / 9;
 }
 
 .marketing-ripple {
@@ -663,7 +669,6 @@
 /* ---------- Responsive ---------- */
 @media (max-width: 900px) {
   .marketing-hero__inner { grid-template-columns: 1fr; }
-  .marketing-hero__aside { order: -1; }
   .marketing-grid--3col { grid-template-columns: 1fr; }
   .marketing-grid--2col { grid-template-columns: 1fr; }
   .marketing-demo__inner { grid-template-columns: 1fr; }
