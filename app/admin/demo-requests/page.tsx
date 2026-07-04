@@ -5,7 +5,18 @@ import { getAdminContext } from '@/lib/auth/get-admin-context'
 import { getSessionUser } from '@/lib/auth/get-session-user'
 import { requireAuth } from '@/lib/auth/require-auth'
 import { requireRole } from '@/lib/auth/require-role'
-import { createSupabaseServiceClient } from '@/lib/supabase/service'
+import { createSupabaseServerClient } from '@/lib/supabase/server'
+
+const SUPERADMIN_NAV_LINKS = [
+  { href: '/admin', label: 'Schools' },
+  { href: '/admin/tags', label: 'Tag provisioning' },
+  { href: '/admin/demo-requests', label: 'Demo requests' },
+  { href: '/dashboard', label: 'Dashboard' },
+  { href: '/students', label: 'Students' },
+  { href: '/tags', label: 'Tags' },
+  { href: '/events', label: 'Events' },
+  { href: '/settings', label: 'Settings' }
+]
 
 export default async function DemoRequestsAdminPage() {
   const sessionUser = await getSessionUser()
@@ -14,7 +25,7 @@ export default async function DemoRequestsAdminPage() {
     redirect('/login')
   }
 
-  const supabase = createSupabaseServiceClient()
+  const supabase = createSupabaseServerClient()
   const adminContext = await getAdminContext(sessionUser.id, {
     async loadAdminUser(userId) {
       const { data, error } = await supabase
@@ -47,11 +58,16 @@ export default async function DemoRequestsAdminPage() {
     .order('created_at', { ascending: false })
 
   if (error) {
-    throw new Error(error.message)
+    return (
+      <ProtectedAppShell schoolName="iFoundIt superadmin" navLinks={SUPERADMIN_NAV_LINKS}>
+        <h2>Demo request submissions</h2>
+        <p>We could not load demo requests right now. Please refresh and try again.</p>
+      </ProtectedAppShell>
+    )
   }
 
   return (
-    <ProtectedAppShell schoolName="iFoundIt superadmin">
+    <ProtectedAppShell schoolName="iFoundIt superadmin" navLinks={SUPERADMIN_NAV_LINKS}>
       <h2>Demo request submissions</h2>
       <p>Internal queue for marketing demo enquiries.</p>
       {requests && requests.length > 0 ? (

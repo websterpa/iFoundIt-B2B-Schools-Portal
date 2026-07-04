@@ -5,16 +5,23 @@ import { getAdminContext } from '@/lib/auth/get-admin-context'
 import { getSessionUser } from '@/lib/auth/get-session-user'
 import { requireAuth } from '@/lib/auth/require-auth'
 import { requireRole } from '@/lib/auth/require-role'
-import { createSupabaseServiceClient } from '@/lib/supabase/service'
+import { readSuperadminSchoolContext } from '@/lib/auth/superadmin-school-context'
+import { createSupabaseServerClient } from '@/lib/supabase/server'
 
-export default async function DashboardPage() {
+type DashboardPageProps = {
+  searchParams?: {
+    organisationId?: string
+  }
+}
+
+export default async function DashboardPage({ searchParams }: DashboardPageProps) {
   const sessionUser = await getSessionUser()
 
   if (!requireAuth(sessionUser.id) || !sessionUser.id) {
     redirect('/login')
   }
 
-  const supabase = createSupabaseServiceClient()
+  const supabase = createSupabaseServerClient()
   const adminContext = await getAdminContext(sessionUser.id, {
     async loadAdminUser(userId) {
       const { data, error } = await supabase
@@ -35,8 +42,35 @@ export default async function DashboardPage() {
     }
   })
 
-  if (!requireRole(adminContext, ['school_admin'])) {
+  if (!adminContext || !requireRole(adminContext, ['school_admin', 'ifoundit_superadmin'])) {
     redirect('/unauthorised')
+  }
+
+  if (adminContext.role === 'ifoundit_superadmin') {
+    const organisationId =
+      searchParams?.organisationId?.trim() || readSuperadminSchoolContext()?.trim()
+
+    if (!organisationId) {
+      return (
+        <ProtectedAppShell schoolName="School workspace">
+          <h2>Select a school</h2>
+          <p>
+            Superadmins must set a school context before opening school routes. Use the school
+            context picker on the superadmin schools page.
+          </p>
+        </ProtectedAppShell>
+      )
+    }
+
+    const { data: selectedOrg, error: selectedOrgError } = await supabase
+      .from('organisations')
+      .select('id')
+      .eq('id', organisationId)
+      .maybeSingle()
+
+    if (selectedOrgError || !selectedOrg) {
+      redirect('/unauthorised')
+    }
   }
 
   return (

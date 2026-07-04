@@ -59,6 +59,28 @@ export function normalizeTagSerial(value: string) {
   return serial
 }
 
+function extractSerialFromUrlCell(value: string) {
+  const trimmed = value.trim()
+
+  if (!trimmed.startsWith('http://') && !trimmed.startsWith('https://')) {
+    return null
+  }
+
+  try {
+    const url = new URL(trimmed)
+    const pathSegments = url.pathname.split('/').filter(Boolean)
+    const lastSegment = pathSegments[pathSegments.length - 1]
+
+    if (!lastSegment) {
+      return null
+    }
+
+    return normalizeTagSerial(decodeURIComponent(lastSegment))
+  } catch {
+    return null
+  }
+}
+
 export function detectUidColumn(headers: string[]): UidColumnMatch | null {
   const index = headers.findIndex((header) =>
     TAG_UID_COLUMN_CANDIDATES.includes(header.trim().toLowerCase() as (typeof TAG_UID_COLUMN_CANDIDATES)[number])
@@ -91,11 +113,12 @@ export function parseProvisioningCsv(csvText: string): ParsedProvisioningCsv {
   const rows: ParsedProvisioningRow[] = lines.slice(1).map((line, rowOffset) => {
     const values = parseCsvLine(line)
     const sourceValue = values[uidColumn.index] ?? ''
+    const normalizedSerial = normalizeTagSerial(sourceValue) ?? extractSerialFromUrlCell(sourceValue)
 
     return {
       rowNumber: rowOffset + 2,
       sourceValue,
-      normalizedSerial: normalizeTagSerial(sourceValue)
+      normalizedSerial
     }
   })
 

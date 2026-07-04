@@ -28,8 +28,17 @@ type CreateSchoolResult = {
   pendingAdminStatus: string
 }
 
+type SetSchoolContextPayload = {
+  organisationId: string
+}
+
+type SetSchoolContextResult = {
+  organisationId: string | null
+}
+
 type SuperadminOnboardingWorkspaceProps = {
   schools: SchoolOption[]
+  initialSchoolContextOrganisationId?: string | null
   createSchoolAction: (
     input: CreateSchoolPayload
   ) => Promise<ActionResponse<CreateSchoolResult>>
@@ -39,6 +48,9 @@ type SuperadminOnboardingWorkspaceProps = {
   commitProvisioningAction: (
     input: CommitProvisioningPayload
   ) => Promise<ActionResponse<CommitProvisioningResult>>
+  setSchoolContextAction?: (
+    input: SetSchoolContextPayload
+  ) => Promise<ActionResponse<SetSchoolContextResult>>
 }
 
 function sortSchools(schools: SchoolOption[]) {
@@ -75,13 +87,19 @@ function InventorySummary({ snapshot }: { snapshot: InventorySnapshot }) {
 
 export function SuperadminOnboardingWorkspace({
   schools: initialSchools,
+  initialSchoolContextOrganisationId = null,
   createSchoolAction,
   previewProvisioningAction,
-  commitProvisioningAction
+  commitProvisioningAction,
+  setSchoolContextAction
 }: SuperadminOnboardingWorkspaceProps) {
   const [schools, setSchools] = useState(() => sortSchools(initialSchools))
   const [selectedOrganisationId, setSelectedOrganisationId] = useState(initialSchools[0]?.id ?? '')
+  const [schoolContextOrganisationId, setSchoolContextOrganisationId] = useState(
+    initialSchoolContextOrganisationId ?? initialSchools[0]?.id ?? ''
+  )
   const [createMessage, setCreateMessage] = useState<string | null>(null)
+  const [schoolContextMessage, setSchoolContextMessage] = useState<string | null>(null)
   const [previewMessage, setPreviewMessage] = useState<string | null>(null)
   const [commitMessage, setCommitMessage] = useState<string | null>(null)
   const [previewSchoolId, setPreviewSchoolId] = useState<string | null>(null)
@@ -118,6 +136,28 @@ export function SuperadminOnboardingWorkspace({
       setSchools((currentSchools) => sortSchools([...currentSchools, result.data.school]))
       setSelectedOrganisationId((currentValue) => currentValue || result.data.school.id)
       form.reset()
+    })
+  }
+
+  function handleSchoolContextSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+
+    if (!setSchoolContextAction) {
+      return
+    }
+
+    startTransition(async () => {
+      const result = await setSchoolContextAction({
+        organisationId: schoolContextOrganisationId
+      })
+
+      setSchoolContextMessage(result.message)
+
+      if (!result.ok) {
+        return
+      }
+
+      setSchoolContextOrganisationId(result.data.organisationId ?? '')
     })
   }
 
@@ -168,6 +208,33 @@ export function SuperadminOnboardingWorkspace({
 
   return (
     <div>
+      <section aria-labelledby="school-context-heading">
+        <h2 id="school-context-heading">School portal context</h2>
+        <p>Select the school context superadmins should use for school routes.</p>
+        <form noValidate onSubmit={handleSchoolContextSubmit}>
+          <label>
+            School context
+            <select
+              name="schoolContextOrganisationId"
+              value={schoolContextOrganisationId}
+              onChange={(event) => setSchoolContextOrganisationId(event.target.value)}
+            >
+              <option value="">No school selected</option>
+              {schools.map((school) => (
+                <option key={school.id} value={school.id}>
+                  {school.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <button type="submit" disabled={isPending || !setSchoolContextAction}>
+            {isPending ? 'Saving…' : 'Save school context'}
+          </button>
+          <a href="/dashboard">Open school dashboard</a>
+        </form>
+        {schoolContextMessage ? <p role="status">{schoolContextMessage}</p> : null}
+      </section>
+
       <section aria-labelledby="school-setup-heading">
         <h2 id="school-setup-heading">School setup</h2>
         <p>Create the school record first, then keep the pending admin in a waiting state.</p>
