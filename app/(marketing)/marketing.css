@@ -259,15 +259,16 @@
 }
 
 .marketing-trust-line {
-  margin: 16px auto 0;
-  max-width: 44ch;
+  grid-column: 1 / -1;
+  margin: 20px auto 0;
+  max-width: 48ch;
   padding: 0 24px;
   text-align: center;
-  font-size: clamp(20px, 2.1vw, 30px);
-  line-height: 1.2;
-  letter-spacing: -0.02em;
-  font-weight: 600;
-  color: var(--colour-text-primary);
+  font-size: clamp(20px, 1.8vw, 26px);
+  line-height: 1.25;
+  letter-spacing: -0.015em;
+  font-weight: 500;
+  color: var(--colour-text-secondary);
 }
 
 /* ---------- Grid + card (previously missing) ---------- */
@@ -690,6 +691,19 @@
 }
 
 @media (max-width: 720px) {
+  .marketing__container {
+    padding: 0 16px;
+  }
+  .marketing-header__inner {
+    gap: 10px;
+  }
+  .marketing-logo {
+    min-width: 0;
+    font-size: 16px;
+  }
+  .marketing-logo small {
+    font-size: 12px;
+  }
   .marketing-nav {
     position: absolute;
     top: 64px;
@@ -711,6 +725,9 @@
     gap: 8px;
     width: auto;
     padding: 0 12px;
+  }
+  .marketing-header__login {
+    display: none;
   }
   .marketing-header__actions .btn--primary {
     display: none;

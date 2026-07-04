@@ -16,6 +16,30 @@ describe('onboarding csv helpers', () => {
     expect(detectUidColumn(['Name', 'UID'])).toEqual({ header: 'UID', index: 1 })
   })
 
+  it('accepts supplier UID SCAN header format', () => {
+    const parsed = parseProvisioningCsv(
+      [
+        'Product,URL,UID SCAN,ENCODING DATA',
+        'ST721,https://ifoundit.io/scanned-tag/,047C755A161E90,https://ifoundit.io/scanned-tag/047C755A161E90'
+      ].join('\n')
+    )
+
+    expect(parsed.uidColumn).toEqual({ header: 'UID SCAN', index: 2 })
+    expect(parsed.rows[0]?.normalizedSerial).toBe('047C755A161E90')
+  })
+
+  it('extracts serial from ENCODING DATA URL values', () => {
+    const parsed = parseProvisioningCsv(
+      [
+        'Product,URL,ENCODING DATA',
+        'ST721,https://ifoundit.io/scanned-tag/,https://ifoundit.io/scanned-tag/04E01F5A161E90'
+      ].join('\n')
+    )
+
+    expect(parsed.uidColumn).toEqual({ header: 'ENCODING DATA', index: 2 })
+    expect(parsed.rows[0]?.normalizedSerial).toBe('04E01F5A161E90')
+  })
+
   it('classifies valid, duplicate, invalid, and cross-school conflict rows', () => {
     const parsed = parseProvisioningCsv(
       ['UID', 'ab12cd34', 'AB12CD34', 'bad-uid', 'ZXCVBN12'].join('\n')

@@ -1,26 +1,15 @@
 import React from 'react'
-import Link from 'next/link'
 
 import {
-  MarketingHero,
   MarketingSection,
   MarketingSectionHeading
 } from '@/components/marketing/marketing-page'
+import SchoolsMobileHeaderHero from '@/src/components/sections/SchoolsMobileHeaderHero'
 
 export default function ForSchoolsPage() {
   return (
-    <main className="marketing-main">
-      <MarketingHero eyebrow="For schools" title="Procurement-ready recovery for BYOD pouch rollouts">
-        <p className="marketing-lead">
-          iFoundIt Schools is built for schools that already allow pupils to bring their own phones
-          and want a straightforward recovery route when a sealed pouch leaves the building.
-        </p>
-        <div className="marketing-actions">
-          <Link className="marketing-button marketing-button--primary" href="/contact">
-            Request a pilot
-          </Link>
-        </div>
-      </MarketingHero>
+    <>
+      <SchoolsMobileHeaderHero />
       <MarketingSection labelledBy="for-schools-what-you-get">
         <MarketingSectionHeading id="for-schools-what-you-get" title="What your school gets" />
         <div className="marketing-document-list">
@@ -68,6 +57,6 @@ export default function ForSchoolsPage() {
           on a finder using an NFC-capable phone to tap the tag.
         </p>
       </MarketingSection>
-    </main>
+    </>
   )
 }

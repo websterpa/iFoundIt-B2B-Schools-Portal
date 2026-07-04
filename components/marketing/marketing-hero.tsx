@@ -39,10 +39,11 @@ export function MarketingHero() {
             />
           </div>
         </div>
+
+        <h2 className="marketing-trust-line">
+          Built for UK schools already running mag-lock pouch policies for BYOD phones.
+        </h2>
       </div>
-      <h2 className="marketing-trust-line">
-        Built for UK schools already running mag-lock pouch policies for BYOD phones.
-      </h2>
     </section>
   );
 }

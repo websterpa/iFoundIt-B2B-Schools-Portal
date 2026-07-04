@@ -3,22 +3,40 @@ import type { ReactNode } from 'react'
 
 import { SignOutButton } from '@/components/auth/sign-out-button'
 
+type AppNavLink = {
+  href: string
+  label: string
+}
+
+const DEFAULT_NAV_LINKS: AppNavLink[] = [
+  { href: '/dashboard', label: 'Dashboard' },
+  { href: '/students', label: 'Students' },
+  { href: '/tags', label: 'Tags' },
+  { href: '/events', label: 'Events' },
+  { href: '/settings', label: 'Settings' }
+]
+
 type ProtectedAppShellProps = {
   schoolName: string
   children: ReactNode
+  navLinks?: AppNavLink[]
 }
 
-export function ProtectedAppShell({ schoolName, children }: ProtectedAppShellProps) {
+export function ProtectedAppShell({
+  schoolName,
+  children,
+  navLinks = DEFAULT_NAV_LINKS
+}: ProtectedAppShellProps) {
   return (
     <div>
       <header>
         <h1>{schoolName}</h1>
         <nav aria-label="Primary">
-          <Link href="/dashboard">Dashboard</Link>
-          <Link href="/students">Students</Link>
-          <Link href="/tags">Tags</Link>
-          <Link href="/events">Events</Link>
-          <Link href="/settings">Settings</Link>
+          {navLinks.map((link) => (
+            <Link key={link.href} href={link.href}>
+              {link.label}
+            </Link>
+          ))}
         </nav>
         <SignOutButton />
       </header>
