@@ -20,7 +20,8 @@ create table if not exists public.students (
 alter table public.students
   add column if not exists date_of_birth date,
   add column if not exists home_postcode text,
-  add column if not exists home_postcode_normalized text;
+  add column if not exists home_postcode_normalized text,
+  add column if not exists class_name text;
 
 do $$
 begin

@@ -44,7 +44,7 @@ export default async function SettingsPage() {
 
   const { data: organisation, error } = await supabase
     .from('organisations')
-    .select('contact_email, contact_phone, address, logo_url')
+    .select('contact_email, contact_phone, address, logo_url, collection_details')
     .eq('id', organisationContext.organisationId)
     .maybeSingle()
 
@@ -61,6 +61,7 @@ export default async function SettingsPage() {
     <ProtectedAppShell schoolName="School workspace">
       <SettingsWorkspace
         initialContactEmail={organisation.contact_email}
+        initialCollectionDetails={organisation.collection_details}
         initialContactPhone={organisation.contact_phone}
         initialAddress={organisation.address}
         initialLogoUrl={organisation.logo_url}

@@ -2,6 +2,8 @@ import Link from 'next/link'
 import type { ReactNode } from 'react'
 
 import { SignOutButton } from '@/components/auth/sign-out-button'
+import { ProtectedAppNav } from '@/components/layout/protected-app-nav'
+import styles from './protected-app-shell.module.css'
 
 type AppNavLink = {
   href: string
@@ -28,19 +30,17 @@ export function ProtectedAppShell({
   navLinks = DEFAULT_NAV_LINKS
 }: ProtectedAppShellProps) {
   return (
-    <div>
-      <header>
-        <h1>{schoolName}</h1>
-        <nav aria-label="Primary">
-          {navLinks.map((link) => (
-            <Link key={link.href} href={link.href}>
-              {link.label}
-            </Link>
-          ))}
-        </nav>
-        <SignOutButton />
+    <div className={styles.shell}>
+      <a className={styles.skipLink} href="#workspace-content">Skip to workspace</a>
+      <header className={styles.header}>
+        <div className={styles.identity}>
+          <Link href={navLinks[0]?.href ?? '/dashboard'} className={styles.brand}>iFoundIt <span>Schools</span></Link>
+          <h1>{schoolName}</h1>
+          <SignOutButton />
+        </div>
+        <ProtectedAppNav links={navLinks} />
       </header>
-      <main>{children}</main>
+      <main id="workspace-content" className={styles.content} tabIndex={-1}>{children}</main>
     </div>
   )
 }

@@ -2,6 +2,9 @@
 
 import React, { useMemo, useState, useTransition } from 'react'
 import Papa from 'papaparse'
+import { TrustedContactEditor } from '@/components/students/trusted-contact-editor'
+import type { TrustedContact, ContactActions } from '@/lib/students/trusted-contacts'
+import { formatItemClassification } from '@/lib/tags/item-classification'
 import {
   formatIsoDobToDdMmYyyy,
   normalizeUkPostcodeForMatch,
@@ -17,7 +20,10 @@ type StudentRow = {
   yearGroup: string | null
   className: string | null
   active: boolean
+  parentEmail: string | null
+  trustedContacts: TrustedContact[]
   tagStatus: 'assigned' | 'unassigned'
+  items: Array<{ id: string; serial: string; itemKind: string | null; laptopOwnership: string | null; active: boolean }>
 }
 
 type CreateStudentPayload = {
@@ -58,6 +64,7 @@ type StudentWorkspaceProps = {
   students: StudentRow[]
   createStudentAction: (input: CreateStudentPayload) => Promise<ActionResponse<Record<string, never>>>
   importStudentsAction: (input: ImportStudentPayload) => Promise<ActionResponse<ImportStudentsResult>>
+  contactActions: ContactActions
 }
 
 type PreviewRow = {
@@ -111,7 +118,8 @@ function statusChip(status: StudentRow['tagStatus']) {
 export function StudentWorkspace({
   students,
   createStudentAction,
-  importStudentsAction
+  importStudentsAction,
+  contactActions
 }: StudentWorkspaceProps) {
   const [createMessage, setCreateMessage] = useState<string | null>(null)
   const [importMessage, setImportMessage] = useState<string | null>(null)
@@ -313,7 +321,9 @@ export function StudentWorkspace({
                 <th>Year</th>
                 <th>Class</th>
                 <th>Tag status</th>
+                <th>Tagged items</th>
                 <th>Active</th>
+                <th>Trusted Contacts</th>
               </tr>
             </thead>
             <tbody>
@@ -326,13 +336,28 @@ export function StudentWorkspace({
                   <td>{student.yearGroup ?? '—'}</td>
                   <td>{student.className ?? '—'}</td>
                   <td>{statusChip(student.tagStatus)}</td>
+                  <td>{student.items.length ? (
+                    <details>
+                      <summary>{student.items.length} {student.items.length === 1 ? 'item' : 'items'}</summary>
+                      <ul>{student.items.map((item) => (
+                        <li key={item.id}>
+                          {formatItemClassification(item.itemKind, item.laptopOwnership)}
+                          {' · '}<code>{item.serial}</code>{' · '}{item.active ? 'Active' : 'Inactive'}
+                        </li>
+                      ))}</ul>
+                    </details>
+                  ) : 'No tagged items'}</td>
                   <td>{student.active ? 'Active' : 'Inactive'}</td>
+                  <td>
+                    <TrustedContactEditor studentId={student.id} contacts={student.trustedContacts} legacyEmail={student.parentEmail} actions={contactActions} />
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
         )}
       </section>
+
 
       <section aria-labelledby="student-create-heading">
         <h2 id="student-create-heading">Add one student</h2>

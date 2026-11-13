@@ -4,6 +4,7 @@ import React, { useState, useTransition } from 'react'
 
 type SettingsWorkspaceProps = {
   initialContactEmail: string
+  initialCollectionDetails: string | null
   initialContactPhone: string | null
   initialAddress: string | null
   initialLogoUrl: string | null
@@ -11,6 +12,7 @@ type SettingsWorkspaceProps = {
     contactEmail: string
     contactPhone: string
     address: string
+    collectionDetails: string
   }) => Promise<{ ok: boolean; message: string; data: Record<string, never> }>
   uploadSchoolLogoAction: (
     input: FormData
@@ -19,6 +21,7 @@ type SettingsWorkspaceProps = {
 
 export function SettingsWorkspace({
   initialContactEmail,
+  initialCollectionDetails,
   initialContactPhone,
   initialAddress,
   initialLogoUrl,
@@ -39,7 +42,8 @@ export function SettingsWorkspace({
       const result = await updateSchoolSettingsAction({
         contactEmail: String(formData.get('contactEmail') ?? ''),
         contactPhone: String(formData.get('contactPhone') ?? ''),
-        address: String(formData.get('address') ?? '')
+        address: String(formData.get('address') ?? ''),
+        collectionDetails: String(formData.get('collectionDetails') ?? '')
       })
 
       setSettingsMessage(result.message)
@@ -79,6 +83,12 @@ export function SettingsWorkspace({
             Address
             <textarea name="address" rows={3} defaultValue={initialAddress ?? ''} />
           </label>
+          <label>
+            Collection Details
+            <textarea name="collectionDetails" rows={5} maxLength={2000} defaultValue={initialCollectionDetails ?? ''}
+              placeholder="Collection point, address, opening days and times, appointment requirements…" />
+          </label>
+          <p>Shared collection centre or school lost-property hours. These instructions appear in Trusted Contact emails. Use plain text, not portal links or student information.</p>
           <button type="submit" disabled={isPending}>
             {isPending ? 'Saving…' : 'Save settings'}
           </button>

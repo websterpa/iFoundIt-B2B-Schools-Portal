@@ -14,6 +14,7 @@ import {
 } from '@/lib/students/normalization'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
 import { parseBulkAssignmentCsv } from '@/lib/tags/bulk-assignment-csv'
+import { parseItemClassification, type ItemClassification } from '@/lib/tags/item-classification'
 
 type ActionResponse<T> = {
   ok: boolean
@@ -79,18 +80,24 @@ async function resolveActionOrganisationId(): Promise<string> {
 export async function assignTagToStudentAction(input: {
   tagId: string
   studentId: string
+  itemKind: 'phone_pouch' | 'hero_laptop'
+  laptopOwnership?: 'student' | 'school'
 }): Promise<ActionResponse<EmptyResult>> {
   try {
+    const classification = parseItemClassification(input.itemKind, input.laptopOwnership)
+    if (!classification.ok) return fail(classification.message, {})
+    if (!classification.value) return fail('Select an item type.', {})
     const organisationId = await resolveActionOrganisationId()
     const supabase = createSupabaseServerClient()
 
     const [{ data: tag, error: tagError }, { data: student, error: studentError }] = await Promise.all([
-      supabase.from('tags').select('id').eq('id', input.tagId).eq('organisation_id', organisationId).maybeSingle(),
+      supabase.from('tags').select('id').eq('id', input.tagId).eq('organisation_id', organisationId).eq('active', true).maybeSingle(),
       supabase
         .from('students')
         .select('id')
         .eq('id', input.studentId)
         .eq('organisation_id', organisationId)
+        .eq('active', true)
         .maybeSingle()
     ])
 
@@ -102,14 +109,19 @@ export async function assignTagToStudentAction(input: {
       return fail('Selected student is not available for this school.', {})
     }
 
-    const { error } = await supabase
+    const { data: saved, error } = await supabase
       .from('tags')
-      .update({ student_id: student.id })
+      .update({
+        student_id: student.id,
+        ...classification.value
+      })
       .eq('id', tag.id)
       .eq('organisation_id', organisationId)
+      .eq('active', true)
+      .select('id').maybeSingle()
 
-    if (error) {
-      return fail(error.message, {})
+    if (error || !saved) {
+      return fail('The assignment could not be saved. Refresh and try again.', {})
     }
 
     revalidatePath('/tags')
@@ -138,7 +150,7 @@ export async function bulkAssignTagsAction(
     const parsed = parseBulkAssignmentCsv(await csvFile.text())
 
     if (parsed.malformed) {
-      return fail('CSV is malformed. Fix quote/comma formatting and try again.', {
+      return fail('CSV is malformed. Check for duplicate headers and quote/comma formatting, then try again.', {
         assignedCount: 0,
         errors: []
       })
@@ -172,6 +184,7 @@ export async function bulkAssignTagsAction(
           .from('students')
           .select('id, first_name, last_name, date_of_birth, home_postcode_normalized')
           .eq('organisation_id', organisationId)
+          .eq('active', true)
       ])
 
     if (tagsError || studentsError) {
@@ -202,16 +215,17 @@ export async function bulkAssignTagsAction(
       studentsByName.set(key, current)
     }
 
-    const seenSerialsInFile = new Set<string>()
+    const serialCounts = new Map<string, number>()
+    for (const row of parsed.rows) serialCounts.set(row.serial, (serialCounts.get(row.serial) ?? 0) + 1)
     const errors: BulkAssignError[] = []
     const updatesByTagId = new Map<
       string,
       {
         id: string
-        organisation_id: string
         serial: string
-        active: boolean
         student_id: string
+        classification: ItemClassification | null
+        rowNumber: number
       }
     >()
 
@@ -266,7 +280,7 @@ export async function bulkAssignTagsAction(
         continue
       }
 
-      if (seenSerialsInFile.has(row.serial)) {
+      if ((serialCounts.get(row.serial) ?? 0) > 1) {
         errors.push({
           rowNumber: row.rowNumber,
           serial: row.serial,
@@ -274,8 +288,6 @@ export async function bulkAssignTagsAction(
         })
         continue
       }
-
-      seenSerialsInFile.add(row.serial)
 
       const tag = tagBySerial.get(row.serial)
 
@@ -285,6 +297,16 @@ export async function bulkAssignTagsAction(
           serial: row.serial,
           reason: 'Serial not provisioned to this school'
         })
+        continue
+      }
+
+      if (!tag.active) {
+        errors.push({ rowNumber: row.rowNumber, serial: row.serial, reason: 'Tag is inactive' })
+        continue
+      }
+      const classification = parseItemClassification(row.itemKind, row.laptopOwnership)
+      if (!classification.ok) {
+        errors.push({ rowNumber: row.rowNumber, serial: row.serial, reason: classification.message })
         continue
       }
 
@@ -322,35 +344,39 @@ export async function bulkAssignTagsAction(
 
       updatesByTagId.set(tag.id, {
         id: tag.id,
-        organisation_id: tag.organisation_id,
         serial: tag.serial,
-        active: tag.active,
-        student_id: matchingStudents[0].id
+        student_id: matchingStudents[0].id,
+        classification: classification.value,
+        rowNumber: row.rowNumber
       })
     }
 
     const updates = Array.from(updatesByTagId.values())
 
-    if (updates.length > 0) {
-      const { error: updateError } = await supabase.from('tags').upsert(updates, {
-        onConflict: 'id'
-      })
-
-      if (updateError) {
-        return fail(updateError.message, {
-          assignedCount: 0,
-          errors
-        })
+    let assignedCount = 0
+    // UPDATE respects school-admin RLS without requiring tag INSERT permission.
+    for (let offset = 0; offset < updates.length; offset += 25) {
+      const outcomes = await Promise.all(updates.slice(offset, offset + 25).map(async (update) => {
+        const { data, error } = await supabase.from('tags')
+          .update({ student_id: update.student_id, ...(update.classification ?? {}) })
+          .eq('id', update.id).eq('organisation_id', organisationId).eq('active', true)
+          .select('id').maybeSingle()
+        return { update, saved: !error && Boolean(data) }
+      }))
+      for (const { update, saved } of outcomes) {
+        if (saved) assignedCount++
+        else errors.push({ rowNumber: update.rowNumber, serial: update.serial, reason: 'Assignment could not be saved; refresh and retry this row' })
       }
     }
 
     revalidatePath('/tags')
     revalidatePath('/students')
 
-    return ok(
-      `${updates.length} tags assigned. ${errors.length} rows require attention.`,
+    const result = assignedCount === 0 && errors.length > 0 ? fail : ok
+    return result(
+      `${assignedCount} tags assigned. ${errors.length} rows require attention.`,
       {
-        assignedCount: updates.length,
+        assignedCount,
         errors
       }
     )

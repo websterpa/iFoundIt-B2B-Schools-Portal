@@ -3,6 +3,15 @@ import { describe, expect, it } from 'vitest'
 import { parseBulkAssignmentCsv } from '@/lib/tags/bulk-assignment-csv'
 
 describe('bulk assignment csv parser', () => {
+  it('rejects ambiguous duplicate classification headers', () => {
+    const parsed = parseBulkAssignmentCsv('serial,first_name,last_name,date_of_birth,home_postcode,item_kind,item_kind\nHERO0001,Alice,Smith,,,hero_laptop,phone_pouch')
+    expect(parsed.malformed).toBe(true)
+    expect(parsed.rows).toEqual([])
+  })
+  it('reads optional laptop classification columns without changing student matching fields', () => {
+    const result = parseBulkAssignmentCsv('serial,first_name,last_name,date_of_birth,home_postcode,item_kind,laptop_ownership\nHERO0001,Alice,Smith,05-01-2014,SW1A 1AA, HERO_LAPTOP , STUDENT ')
+    expect(result.rows[0]).toMatchObject({ serial: 'HERO0001', itemKind: 'hero_laptop', laptopOwnership: 'student' })
+  })
   it('parses quoted values and embedded commas', () => {
     const parsed = parseBulkAssignmentCsv(
       [

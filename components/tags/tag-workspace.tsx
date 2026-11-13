@@ -1,12 +1,15 @@
 'use client'
 
 import React, { useState, useTransition } from 'react'
+import { formatItemClassification } from '@/lib/tags/item-classification'
 
 type TagRow = {
   id: string
   serial: string
   assignedStudentName: string | null
   active: boolean
+  itemKind: string | null
+  laptopOwnership: string | null
 }
 
 type StudentOption = {
@@ -32,7 +35,7 @@ type BulkAssignResult = {
 type TagWorkspaceProps = {
   tags: TagRow[]
   students: StudentOption[]
-  assignTagToStudentAction: (input: { tagId: string; studentId: string }) => Promise<ActionResponse<Record<string, never>>>
+  assignTagToStudentAction: (input: { tagId: string; studentId: string; itemKind: 'phone_pouch' | 'hero_laptop'; laptopOwnership?: 'student' | 'school' }) => Promise<ActionResponse<Record<string, never>>>
   bulkAssignTagsAction: (input: FormData) => Promise<ActionResponse<BulkAssignResult>>
 }
 
@@ -44,6 +47,8 @@ export function TagWorkspace({
 }: TagWorkspaceProps) {
   const [selectedTagId, setSelectedTagId] = useState(tags.find((tag) => !tag.assignedStudentName)?.id ?? '')
   const [selectedStudentId, setSelectedStudentId] = useState(students[0]?.id ?? '')
+  const [itemKind, setItemKind] = useState<'phone_pouch' | 'hero_laptop'>('phone_pouch')
+  const [laptopOwnership, setLaptopOwnership] = useState<'student' | 'school'>('student')
   const [manualMessage, setManualMessage] = useState<string | null>(null)
   const [bulkMessage, setBulkMessage] = useState<string | null>(null)
   const [bulkErrors, setBulkErrors] = useState<BulkAssignResult['errors']>([])
@@ -55,7 +60,9 @@ export function TagWorkspace({
     startTransition(async () => {
       const result = await assignTagToStudentAction({
         tagId: selectedTagId,
-        studentId: selectedStudentId
+        studentId: selectedStudentId,
+        itemKind,
+        laptopOwnership: itemKind === 'hero_laptop' ? laptopOwnership : undefined
       })
 
       setManualMessage(result.message)
@@ -88,6 +95,7 @@ export function TagWorkspace({
                 <th>Serial</th>
                 <th>Status</th>
                 <th>Student</th>
+                <th>Item</th>
                 <th>Active</th>
               </tr>
             </thead>
@@ -97,6 +105,7 @@ export function TagWorkspace({
                   <td style={{ fontFamily: 'JetBrains Mono, monospace' }}>{tag.serial}</td>
                   <td>{tag.assignedStudentName ? 'Assigned' : 'Unassigned'}</td>
                   <td>{tag.assignedStudentName ?? '—'}</td>
+                  <td>{formatItemClassification(tag.itemKind, tag.laptopOwnership)}</td>
                   <td>{tag.active ? 'Active' : 'Inactive'}</td>
                 </tr>
               ))}
@@ -141,6 +150,22 @@ export function TagWorkspace({
                 ))}
               </select>
             </label>
+            <label>
+              Item type
+              <select value={itemKind} onChange={(event) => setItemKind(event.target.value as 'phone_pouch' | 'hero_laptop')}>
+                <option value="phone_pouch">Phone pouch</option>
+                <option value="hero_laptop">BYOD laptop</option>
+              </select>
+            </label>
+            {itemKind === 'hero_laptop' ? (
+              <label>
+                Laptop owner
+                <select value={laptopOwnership} onChange={(event) => setLaptopOwnership(event.target.value as 'student' | 'school')}>
+                  <option value="student">Student owned</option>
+                  <option value="school">School owned</option>
+                </select>
+              </label>
+            ) : null}
             <button type="submit" disabled={isPending || !selectedTagId || !selectedStudentId}>
               {isPending ? 'Assigning…' : 'Assign tag'}
             </button>
@@ -153,9 +178,16 @@ export function TagWorkspace({
       <section aria-labelledby="bulk-tag-assignment-heading">
         <h2 id="bulk-tag-assignment-heading">Bulk CSV assignment</h2>
         <p>
-          Upload CSV with headers `serial,first_name,last_name,date_of_birth,home_postcode`.
-          `date_of_birth` must be DD-MM-YYYY. `home_postcode` is matched uppercase with spaces removed.
+          Upload CSV with headers <code>serial,first_name,last_name,date_of_birth,home_postcode</code>.
+          <code>date_of_birth</code> must be DD-MM-YYYY. <code>home_postcode</code> is matched uppercase with spaces removed.
         </p>
+        <p>
+          To classify items, add optional <code>item_kind,laptop_ownership</code> columns.
+          Use <code>hero_laptop,student</code> or <code>hero_laptop,school</code> for laptops;
+          use <code>phone_pouch</code> with blank ownership for pouches. Leaving both blank
+          preserves the tag&apos;s current classification. Inactive tags and duplicate serials are rejected.
+        </p>
+        <p><a href="/templates/tag-assignments.csv" download>Download the CSV template</a></p>
         <form noValidate onSubmit={handleBulkAssign}>
           <label>
             CSV file

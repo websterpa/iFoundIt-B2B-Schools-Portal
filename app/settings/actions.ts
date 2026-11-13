@@ -61,22 +61,28 @@ export async function updateSchoolSettingsAction(input: {
   contactEmail: string
   contactPhone: string
   address: string
+  collectionDetails: string
 }): Promise<ActionResponse<Record<string, never>>> {
   try {
     const organisationId = await resolveActionOrganisationId()
+    if (typeof input.collectionDetails !== 'string' || input.collectionDetails.length > 2000 || /https?:\/\/|www\./i.test(input.collectionDetails)) {
+      return fail('Collection Details must be plain text, up to 2,000 characters, without web links.', {})
+    }
     const supabase = createSupabaseServerClient()
 
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from('organisations')
       .update({
         contact_email: input.contactEmail.trim(),
         contact_phone: input.contactPhone.trim() || null,
-        address: input.address.trim() || null
+        address: input.address.trim() || null,
+        collection_details: input.collectionDetails.trim() || null
       })
       .eq('id', organisationId)
+      .select('id').maybeSingle()
 
-    if (error) {
-      return fail(error.message, {})
+    if (error || !data) {
+      return fail('School settings could not be saved for this school.', {})
     }
 
     revalidatePath('/settings')

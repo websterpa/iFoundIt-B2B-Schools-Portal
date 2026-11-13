@@ -124,10 +124,24 @@ ALTER TABLE public.students
   ADD COLUMN IF NOT EXISTS home_postcode_normalized text,
   ADD COLUMN IF NOT EXISTS class_name text;
 
-UPDATE public.students
-SET class_name = form_group
-WHERE class_name IS NULL
-  AND form_group IS NOT NULL;
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1
+    FROM information_schema.columns
+    WHERE table_schema = 'public'
+      AND table_name = 'students'
+      AND column_name = 'form_group'
+  ) THEN
+    EXECUTE $sql$
+      UPDATE public.students
+      SET class_name = form_group
+      WHERE class_name IS NULL
+        AND form_group IS NOT NULL
+    $sql$;
+  END IF;
+END;
+$$;
 
 DO $$
 BEGIN

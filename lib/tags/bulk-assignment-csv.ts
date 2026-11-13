@@ -7,6 +7,8 @@ export type BulkAssignmentCsvRow = {
   lastName: string
   dateOfBirth: string
   homePostcode: string
+  itemKind?: string
+  laptopOwnership?: string
 }
 
 export type BulkAssignmentCsvParseResult = {
@@ -37,11 +39,17 @@ export function parseBulkAssignmentCsv(csvText: string): BulkAssignmentCsvParseR
   }
 
   const headers = records[0].map((header) => header.trim().toLowerCase())
+  const knownHeaders = ['serial', 'first_name', 'last_name', 'date_of_birth', 'home_postcode', 'item_kind', 'laptop_ownership']
+  if (knownHeaders.some((header) => headers.indexOf(header) !== headers.lastIndexOf(header))) {
+    return { rows: [], hasHeaders: false, malformed: true }
+  }
   const serialIndex = headers.indexOf('serial')
   const firstNameIndex = headers.indexOf('first_name')
   const lastNameIndex = headers.indexOf('last_name')
   const dateOfBirthIndex = headers.indexOf('date_of_birth')
   const homePostcodeIndex = headers.indexOf('home_postcode')
+  const itemKindIndex = headers.indexOf('item_kind')
+  const ownershipIndex = headers.indexOf('laptop_ownership')
 
   if (
     serialIndex === -1 ||
@@ -67,8 +75,10 @@ export function parseBulkAssignmentCsv(csvText: string): BulkAssignmentCsvParseR
     const lastName = (columns[lastNameIndex] ?? '').trim()
     const dateOfBirth = (columns[dateOfBirthIndex] ?? '').trim()
     const homePostcode = (columns[homePostcodeIndex] ?? '').trim()
+    const itemKind = (columns[itemKindIndex] ?? '').trim().toLowerCase()
+    const laptopOwnership = (columns[ownershipIndex] ?? '').trim().toLowerCase()
 
-    if (!serial && !firstName && !lastName && !dateOfBirth && !homePostcode) {
+    if (!serial && !firstName && !lastName && !dateOfBirth && !homePostcode && !itemKind && !laptopOwnership) {
       return []
     }
 
@@ -79,7 +89,9 @@ export function parseBulkAssignmentCsv(csvText: string): BulkAssignmentCsvParseR
         firstName,
         lastName,
         dateOfBirth,
-        homePostcode
+        homePostcode,
+        ...(itemKindIndex >= 0 ? { itemKind } : {}),
+        ...(ownershipIndex >= 0 ? { laptopOwnership } : {})
       }
     ]
   })

@@ -1,6 +1,9 @@
 -- depends on 20260701230500_superadmin_school_onboarding_phase2.sql
 
-create type public.demo_request_role as enum (
+do $$
+begin
+  if to_regtype('public.demo_request_role') is null then
+    create type public.demo_request_role as enum (
   'Headteacher',
   'Deputy or Assistant Head',
   'Business Manager or SBM',
@@ -8,14 +11,26 @@ create type public.demo_request_role as enum (
   'Trust COO or CFO',
   'Other'
 );
+  end if;
+end;
+$$;
 
-create type public.demo_request_rollout_scope as enum (
+do $$
+begin
+  if to_regtype('public.demo_request_rollout_scope') is null then
+    create type public.demo_request_rollout_scope as enum (
   'Whole school',
   'Specific year group(s)',
   'Trust or group of schools'
 );
+  end if;
+end;
+$$;
 
-create type public.demo_request_school_type as enum (
+do $$
+begin
+  if to_regtype('public.demo_request_school_type') is null then
+    create type public.demo_request_school_type as enum (
   'Academy (single)',
   'Multi-Academy Trust',
   'Local Authority maintained',
@@ -23,46 +38,85 @@ create type public.demo_request_school_type as enum (
   'Independent or Private',
   'Sixth Form or FE College'
 );
+  end if;
+end;
+$$;
 
-create type public.demo_request_trust_size as enum (
+do $$
+begin
+  if to_regtype('public.demo_request_trust_size') is null then
+    create type public.demo_request_trust_size as enum (
   '2 to 5',
   '6 to 10',
   '11 to 20',
   '21 or more'
 );
+  end if;
+end;
+$$;
 
-create type public.demo_request_pupil_count as enum (
+do $$
+begin
+  if to_regtype('public.demo_request_pupil_count') is null then
+    create type public.demo_request_pupil_count as enum (
   'Under 300',
   '300 to 600',
   '600 to 1,000',
   '1,000 to 1,500',
   '1,500 or more'
 );
+  end if;
+end;
+$$;
 
-create type public.demo_request_phone_policy as enum (
+do $$
+begin
+  if to_regtype('public.demo_request_phone_policy') is null then
+    create type public.demo_request_phone_policy as enum (
   'Banned or confiscated',
   'Allowed with restrictions',
   'No formal policy'
 );
+  end if;
+end;
+$$;
 
-create type public.demo_request_lost_property as enum (
+do $$
+begin
+  if to_regtype('public.demo_request_lost_property') is null then
+    create type public.demo_request_lost_property as enum (
   'No system in place',
   'Handled by staff time',
   'Other'
 );
+  end if;
+end;
+$$;
 
-create type public.demo_request_purchase_timeline as enum (
+do $$
+begin
+  if to_regtype('public.demo_request_purchase_timeline') is null then
+    create type public.demo_request_purchase_timeline as enum (
   'This term',
   'Next term',
   'Next academic year',
   'Just researching'
 );
+  end if;
+end;
+$$;
 
-create type public.demo_request_budget_authority as enum (
+do $$
+begin
+  if to_regtype('public.demo_request_budget_authority') is null then
+    create type public.demo_request_budget_authority as enum (
   'Sole decision maker',
   'Part of a decision-making group',
   'No budget authority'
 );
+  end if;
+end;
+$$;
 
 create table if not exists public.demo_requests (
   id uuid primary key default gen_random_uuid(),
@@ -94,3 +148,7 @@ create table if not exists public.demo_requests (
 );
 
 create index if not exists demo_requests_created_at_idx on public.demo_requests (created_at desc);
+
+-- Fail closed even before later policy migrations run.
+alter table public.demo_requests enable row level security;
+revoke all on table public.demo_requests from anon, authenticated;

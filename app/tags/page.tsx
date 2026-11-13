@@ -47,7 +47,7 @@ export default async function TagsPage() {
   const [{ data: tags, error: tagsError }, { data: students, error: studentsError }] = await Promise.all([
     supabase
       .from('tags')
-      .select('id, serial, student_id, active')
+      .select('id, serial, student_id, active, item_kind, laptop_ownership')
       .eq('organisation_id', organisationId)
       .order('serial', { ascending: true }),
     supabase
@@ -79,7 +79,9 @@ export default async function TagsPage() {
           id: tag.id,
           serial: tag.serial,
           assignedStudentName: tag.student_id ? studentById.get(tag.student_id) ?? null : null,
-          active: tag.active
+          active: tag.active,
+          itemKind: tag.item_kind,
+          laptopOwnership: tag.laptop_ownership
         }))}
         students={(students ?? []).map((student) => ({
           id: student.id,

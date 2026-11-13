@@ -48,7 +48,7 @@ export default async function EventsPage() {
     await Promise.all([
       supabase
         .from('found_events')
-        .select('id, tag_id, created_at, status, resolved_at')
+        .select('id, tag_id, created_at, status, resolved_at, notification_sent_at, parent_notification_status')
         .eq('organisation_id', organisationId)
         .order('created_at', { ascending: false }),
       supabase
@@ -71,7 +71,7 @@ export default async function EventsPage() {
   const tagIds = Array.from(new Set((events ?? []).map((event) => event.tag_id)))
   const { data: tags, error: tagsError } = await supabase
     .from('tags')
-    .select('id, serial, student_id')
+    .select('id, serial, student_id, item_kind, laptop_ownership')
     .eq('organisation_id', organisationId)
     .in('id', tagIds.length > 0 ? tagIds : ['00000000-0000-0000-0000-000000000000'])
 
@@ -116,9 +116,13 @@ export default async function EventsPage() {
             id: event.id,
             serial: tag?.serial ?? 'Unknown serial',
             studentName: tag?.student_id ? studentById.get(tag.student_id) ?? null : null,
+            itemKind: tag?.item_kind ?? null,
+            laptopOwnership: tag?.laptop_ownership ?? null,
             createdAt: event.created_at,
             status: event.status,
-            resolvedAt: event.resolved_at
+            resolvedAt: event.resolved_at,
+            notificationSentAt: event.notification_sent_at,
+            parentNotificationStatus: event.parent_notification_status
           }
         })}
         rejections={(rejections ?? []).map((rejection) => ({

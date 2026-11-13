@@ -2,7 +2,7 @@
 
 ## MVP Outcome
 
-Deliver a working school portal that supports the end-to-end pouch recovery loop for pilot schools:
+Deliver a working school portal that supports the end-to-end recovery loop for phone pouches and BYOD laptops protected by Hero NFC tags at pilot schools:
 
 1. iFoundIt creates a school account.
 2. iFoundIt provisions NFC tag serials to that school.
@@ -21,6 +21,7 @@ Deliver a working school portal that supports the end-to-end pouch recovery loop
 - Manual student creation for exceptions
 - Tag provisioning by iFoundIt superadmin
 - Manual and CSV-based tag assignment
+- Record whether a manually assigned tag protects a phone pouch or BYOD laptop, and whether a laptop is student-owned or school-owned
 - Public finder page by tag serial
 - Found-event submission flow
 - Finder-flow anti-spam controls: per-tag debounce, honeypot, time-trap, and IP rate limiting
@@ -48,6 +49,7 @@ Deliver a working school portal that supports the end-to-end pouch recovery loop
 - Pilot schools will accept manual onboarding by iFoundIt
 - Schools can provide a usable CSV export of student records
 - NFC serials are pre-programmed before shipment
+- Existing tag records remain unclassified until school staff identify the attached item; the pilot may include student-owned and school-owned laptops assigned to students
 - Email is sufficient for pilot-stage recovery notifications
 
 ## Guardrails

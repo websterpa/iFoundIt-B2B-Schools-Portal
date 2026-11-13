@@ -1,14 +1,19 @@
 'use client'
 
 import React, { useState, useTransition } from 'react'
+import { formatItemClassification } from '@/lib/tags/item-classification'
 
 type EventRow = {
   id: string
   serial: string
   studentName: string | null
+  itemKind: string | null
+  laptopOwnership: string | null
   createdAt: string
-  status: 'pending' | 'resolved'
+  status: 'pending' | 'resolved' | 'rejected'
   resolvedAt: string | null
+  notificationSentAt: string | null
+  parentNotificationStatus: string
 }
 
 type RejectionRow = {
@@ -57,8 +62,11 @@ export function EventWorkspace({
               <tr>
                 <th>Tag serial</th>
                 <th>Student</th>
+                <th>Item</th>
                 <th>Timestamp</th>
                 <th>Status</th>
+                <th>School email</th>
+                <th>Trusted Contact emails</th>
                 <th>Action</th>
               </tr>
             </thead>
@@ -67,15 +75,18 @@ export function EventWorkspace({
                 <tr key={event.id}>
                   <td style={{ fontFamily: 'JetBrains Mono, monospace' }}>{event.serial}</td>
                   <td>{event.studentName ?? 'Unassigned tag'}</td>
+                  <td>{formatItemClassification(event.itemKind, event.laptopOwnership)}</td>
                   <td>{new Date(event.createdAt).toISOString()}</td>
-                  <td>{event.status === 'resolved' ? 'Resolved (green)' : 'Pending (amber)'}</td>
+                  <td>{event.status === 'resolved' ? 'Resolved' : event.status === 'rejected' ? 'Rejected' : 'Pending'}</td>
+                  <td>{event.status === 'rejected' ? 'Not sent' : event.notificationSentAt ? 'Submitted' : 'Not yet confirmed'}</td>
+                  <td>{event.parentNotificationStatus === 'submitted' ? 'Submitted' : event.parentNotificationStatus === 'partial' ? 'Partially submitted - follow up' : event.parentNotificationStatus === 'failed' ? 'Failed - follow up' : event.parentNotificationStatus === 'pending' || event.parentNotificationStatus === 'unconfirmed' ? 'Not yet confirmed' : 'Not requested'}</td>
                   <td>
                     {event.status === 'pending' ? (
                       <button type="button" disabled={isPending} onClick={() => handleResolve(event.id)}>
                         {isPending ? 'Saving…' : 'Mark resolved'}
                       </button>
                     ) : (
-                      event.resolvedAt ? new Date(event.resolvedAt).toISOString() : 'Resolved'
+                      event.status === 'rejected' ? 'No action' : event.resolvedAt ? new Date(event.resolvedAt).toISOString() : 'Resolved'
                     )}
                   </td>
                 </tr>

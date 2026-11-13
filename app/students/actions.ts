@@ -14,6 +14,8 @@ import {
   parseDobDdMmYyyyToIso
 } from '@/lib/students/normalization'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
+import { schoolNotificationEmail } from '@/lib/finder/notification-email'
+import type { TrustedContactInput } from '@/lib/students/trusted-contacts'
 
 type StudentImportRowInput = {
   firstName: string
@@ -97,6 +99,73 @@ async function resolveActionOrganisationId(): Promise<string> {
   }
 
   return organisationContext.organisationId
+}
+
+const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
+export async function saveTrustedContactAction(input: TrustedContactInput): Promise<ActionResponse<EmptyResult>> {
+  try {
+    const organisationId = await resolveActionOrganisationId()
+    const email = typeof input.email === 'string' ? schoolNotificationEmail(input.email) : null
+    if (!uuidPattern.test(input.studentId) || (input.contactId !== undefined && !uuidPattern.test(input.contactId)) ||
+      !email || typeof input.displayName !== 'string' || input.displayName.length > 120 ||
+      typeof input.relationship !== 'string' || input.relationship.length > 80 ||
+      typeof input.phone !== 'string' || input.phone.length > 60 ||
+      typeof input.approved !== 'boolean' || typeof input.enabled !== 'boolean') {
+      return fail('Enter valid contact details, approval and notification preferences.', {})
+    }
+    const supabase = createSupabaseServerClient()
+    const { data: student, error: studentError } = await supabase.from('students').select('id')
+      .eq('id', input.studentId).eq('organisation_id', organisationId).maybeSingle()
+    if (studentError || !student) return fail('Student is not available in this school.', {})
+    const now = new Date().toISOString()
+    const values = {
+      display_name: input.displayName.trim() || null,
+      relationship: input.relationship.trim() || null,
+      email, phone: input.phone.trim() || null,
+      approved: input.approved, approved_at: input.approved ? now : null,
+      notifications_enabled: input.enabled, opted_in_at: input.enabled ? now : null,
+      updated_at: now
+    }
+    if (input.contactId) {
+      const { data: existing, error } = await supabase.from('student_trusted_contacts')
+        .select('email, approved_at, opted_in_at').eq('id', input.contactId)
+        .eq('student_id', input.studentId).eq('organisation_id', organisationId).maybeSingle()
+      if (error || !existing) return fail('Contact is not available for this student.', {})
+      if (existing.email !== email && (input.approved || input.enabled)) {
+        return fail('Save a changed email with approval and opt-in off, then confirm permission for the new address.', {})
+      }
+      values.approved_at = input.approved ? existing.approved_at ?? now : null
+      values.opted_in_at = input.enabled ? existing.opted_in_at ?? now : null
+      const { data, error: updateError } = await supabase.from('student_trusted_contacts').update(values)
+        .eq('id', input.contactId).eq('student_id', input.studentId).eq('organisation_id', organisationId).select('id').maybeSingle()
+      if (updateError || !data) return fail('Contact could not be saved. Check for a duplicate email.', {})
+    } else {
+      const { error } = await supabase.from('student_trusted_contacts').insert({
+        ...values, student_id: input.studentId, organisation_id: organisationId
+      })
+      if (error) return fail('Contact could not be added. Check for a duplicate email.', {})
+    }
+    revalidatePath('/students')
+    return ok('Trusted contact saved.', {})
+  } catch (error) {
+    return fail(error instanceof Error ? error.message : 'Could not save trusted contact.', {})
+  }
+}
+
+export async function deleteTrustedContactAction(input: { studentId: string; contactId: string }): Promise<ActionResponse<EmptyResult>> {
+  try {
+    const organisationId = await resolveActionOrganisationId()
+    if (!uuidPattern.test(input.studentId) || !uuidPattern.test(input.contactId)) return fail('Invalid contact selection.', {})
+    const supabase = createSupabaseServerClient()
+    const { data, error } = await supabase.from('student_trusted_contacts').delete()
+      .eq('id', input.contactId).eq('student_id', input.studentId).eq('organisation_id', organisationId).select('id').maybeSingle()
+    if (error || !data) return fail('Contact is not available for this student.', {})
+    revalidatePath('/students')
+    return ok('Trusted contact deleted. Future alerts to this contact have stopped.', {})
+  } catch (error) {
+    return fail(error instanceof Error ? error.message : 'Could not delete trusted contact.', {})
+  }
 }
 
 export async function createStudentAction(input: {
