@@ -3,6 +3,7 @@
 import React from "react";
 import { useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { MenuIcon } from "./icons";
 
 // Fixes the P1 accessibility finding: this is a real <button> with
@@ -11,58 +12,64 @@ import { MenuIcon } from "./icons";
 
 export function MarketingShell({ children }: { children: React.ReactNode }) {
   const [navOpen, setNavOpen] = useState(false);
+  const pathname = usePathname();
+  const isForSchoolsLanding = pathname === "/for-schools";
 
   return (
     <div className="marketing">
-      <a
-        href="#main"
-        className="sr-only focus:not-sr-only"
-        style={{ position: "absolute", left: navOpen ? undefined : "-9999px" }}
-      >
-        Skip to content
-      </a>
+      {!isForSchoolsLanding ? (
+        <a
+          href="#main"
+          className="sr-only focus:not-sr-only"
+          style={{ position: "absolute", left: navOpen ? undefined : "-9999px" }}
+        >
+          Skip to content
+        </a>
+      ) : null}
 
-      <header className="marketing-header">
-        <div className="marketing__container marketing-header__inner">
-          <Link href="/" className="marketing-logo">
-            iFoundIt <small>for Schools</small>
-          </Link>
-
-          <nav
-            id="primary-nav"
-            className={`marketing-nav ${navOpen ? "is-open" : ""}`}
-            aria-label="Primary"
-          >
-            <Link href="/#features">Product</Link>
-            <Link href="/#how-it-works">How it works</Link>
-            <Link href="/security">Security</Link>
-            <Link href="/pricing">Pricing</Link>
-            <Link href="/login">School Login</Link>
-          </nav>
-
-          <div className="marketing-header__actions">
-            <Link href="/login" className="btn btn--ghost marketing-header__login">
-              School Login
+      {!isForSchoolsLanding ? (
+        <header className="marketing-header">
+          <div className="marketing__container marketing-header__inner">
+            <Link href="/" className="marketing-logo">
+              iFoundIt <small>for Schools</small>
             </Link>
-            <Link href="/#demo" className="btn btn--primary">
-              Book a school demo
-            </Link>
-            <button
-              type="button"
-              className="marketing-nav__toggle"
-              aria-expanded={navOpen}
-              aria-controls="primary-nav"
-              aria-label={navOpen ? "Close menu" : "Open menu"}
-              onClick={() => setNavOpen((open) => !open)}
+
+            <nav
+              id="primary-nav"
+              className={`marketing-nav ${navOpen ? "is-open" : ""}`}
+              aria-label="Primary"
             >
-              <MenuIcon />
-              <span className="marketing-nav__toggle-label">Menu</span>
-            </button>
-          </div>
-        </div>
-      </header>
+              <Link href="/#features">Product</Link>
+              <Link href="/#how-it-works">How it works</Link>
+              <Link href="/security">Security</Link>
+              <Link href="/pricing">Pricing</Link>
+              <Link href="/login">School Login</Link>
+            </nav>
 
-      <main id="main">{children}</main>
+            <div className="marketing-header__actions">
+              <Link href="/login" className="btn btn--ghost marketing-header__login">
+                School Login
+              </Link>
+              <Link href="/#demo" className="btn btn--primary">
+                Book a school demo
+              </Link>
+              <button
+                type="button"
+                className="marketing-nav__toggle"
+                aria-expanded={navOpen}
+                aria-controls="primary-nav"
+                aria-label={navOpen ? "Close menu" : "Open menu"}
+                onClick={() => setNavOpen((open) => !open)}
+              >
+                <MenuIcon />
+                <span className="marketing-nav__toggle-label">Menu</span>
+              </button>
+            </div>
+          </div>
+        </header>
+      ) : null}
+
+      {isForSchoolsLanding ? children : <main id="main">{children}</main>}
 
       <footer className="marketing-footer">
         <div className="marketing__container">

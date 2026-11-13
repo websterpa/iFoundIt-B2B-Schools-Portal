@@ -4,7 +4,13 @@ export const PENDING_SCHOOL_ADMIN_STATUSES = [
   'cancelled'
 ] as const
 
-export const TAG_UID_COLUMN_CANDIDATES = ['uid', 'tag_uid', 'serial'] as const
+export const TAG_UID_COLUMN_CANDIDATES = [
+  'uid',
+  'tag_uid',
+  'serial',
+  'uid scan',
+  'encoding data'
+] as const
 export const TAG_SERIAL_PATTERN = /^[A-Z0-9]{8,}$/
 export const PROVISIONING_PREVIEW_MAX_AGE_MINUTES = 15
 

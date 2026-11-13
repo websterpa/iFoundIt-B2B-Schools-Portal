@@ -15,7 +15,11 @@ import {
 import { getAdminContext } from '@/lib/auth/get-admin-context'
 import { getSessionUser } from '@/lib/auth/get-session-user'
 import { requireAuth } from '@/lib/auth/require-auth'
-import { createSupabaseServiceClient } from '@/lib/supabase/service'
+import { createSupabaseServerClient } from '@/lib/supabase/server'
+import {
+  clearSuperadminSchoolContext,
+  writeSuperadminSchoolContext
+} from '@/lib/auth/superadmin-school-context'
 
 type CreateSchoolActionInput = {
   name: string
@@ -37,7 +41,15 @@ type CreateSchoolActionResult = {
   pendingAdminStatus: string
 }
 
-type SupabaseServiceClient = ReturnType<typeof createSupabaseServiceClient>
+type SetSchoolContextActionInput = {
+  organisationId: string
+}
+
+type SetSchoolContextActionResult = {
+  organisationId: string | null
+}
+
+type SupabaseServerClient = ReturnType<typeof createSupabaseServerClient>
 
 function getErrorMessage(error: unknown) {
   if (error instanceof Error) {
@@ -47,7 +59,7 @@ function getErrorMessage(error: unknown) {
   return 'Something went wrong. Please try again.'
 }
 
-async function loadAdminContextForUser(supabase: SupabaseServiceClient, userId: string) {
+async function loadAdminContextForUser(supabase: SupabaseServerClient, userId: string) {
   return getAdminContext(userId, {
     async loadAdminUser(currentUserId) {
       const { data, error } = await supabase
@@ -69,7 +81,7 @@ async function loadAdminContextForUser(supabase: SupabaseServiceClient, userId: 
   })
 }
 
-async function createServiceDeps(supabase: SupabaseServiceClient): Promise<{
+async function createServiceDeps(supabase: SupabaseServerClient): Promise<{
   actorUserId: string
   deps: ServiceDeps
 }> {
@@ -207,7 +219,7 @@ export async function createSchoolAction(
   input: CreateSchoolActionInput
 ): Promise<ActionResponse<CreateSchoolActionResult>> {
   try {
-    const supabase = createSupabaseServiceClient()
+    const supabase = createSupabaseServerClient()
     const { actorUserId, deps } = await createServiceDeps(supabase)
     const result = await createSchoolWithPendingAdmin({ actorUserId, ...input }, deps)
 
@@ -244,7 +256,7 @@ export async function previewProvisioningAction(
       throw new Error('Upload a CSV file before reviewing tags.')
     }
 
-    const supabase = createSupabaseServiceClient()
+    const supabase = createSupabaseServerClient()
     const { actorUserId, deps } = await createServiceDeps(supabase)
     const csvText = await csvFile.text()
 
@@ -274,7 +286,7 @@ export async function commitProvisioningAction(
   input: CommitProvisioningActionInput
 ): Promise<ActionResponse<CommitProvisioningResult>> {
   try {
-    const supabase = createSupabaseServiceClient()
+    const supabase = createSupabaseServerClient()
     const { actorUserId, deps } = await createServiceDeps(supabase)
     const result = await commitTagProvisioning(
       {
@@ -291,6 +303,66 @@ export async function commitProvisioningAction(
       ok: true,
       message: `${result.insertedCount} tags were provisioned. ${result.duplicateCount} duplicate rows were skipped. ${result.invalidCount} rows were invalid. ${result.conflictCount} rows were already allocated to another school.`,
       data: result
+    }
+  } catch (error) {
+    return {
+      ok: false,
+      message: getErrorMessage(error)
+    }
+  }
+}
+
+export async function setSchoolContextAction(
+  input: SetSchoolContextActionInput
+): Promise<ActionResponse<SetSchoolContextActionResult>> {
+  try {
+    const sessionUser = await getSessionUser()
+
+    if (!requireAuth(sessionUser.id) || !sessionUser.id) {
+      throw new Error('Sign in again to continue.')
+    }
+
+    const supabase = createSupabaseServerClient()
+    const adminContext = await loadAdminContextForUser(supabase, sessionUser.id)
+
+    if (!adminContext || adminContext.role !== 'ifoundit_superadmin') {
+      throw new Error('This action is restricted to iFoundIt superadmins.')
+    }
+
+    const organisationId = input.organisationId.trim()
+
+    if (!organisationId) {
+      clearSuperadminSchoolContext()
+
+      return {
+        ok: true,
+        message: 'School workspace context cleared.',
+        data: {
+          organisationId: null
+        }
+      }
+    }
+
+    const { data: organisation, error } = await supabase
+      .from('organisations')
+      .select('id')
+      .eq('id', organisationId)
+      .maybeSingle()
+
+    if (error || !organisation) {
+      throw new Error('Select a valid school before opening school routes.')
+    }
+
+    writeSuperadminSchoolContext(organisation.id)
+
+    revalidatePath('/dashboard')
+
+    return {
+      ok: true,
+      message: 'School workspace context saved.',
+      data: {
+        organisationId: organisation.id
+      }
     }
   } catch (error) {
     return {

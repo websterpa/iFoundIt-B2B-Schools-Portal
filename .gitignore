@@ -24,3 +24,5 @@ dist
 .playwright-mcp/
 tmp/
 components/marketing/Apple-Stripe Redesign files-2/
+.vercel
+.env*
